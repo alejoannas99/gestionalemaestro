@@ -15,22 +15,23 @@ public class ClientService {
         this.clientRepository = clientRepository;
     }
 
-    public void newClient(String name, String surname, String numTel) throws IllegalArgumentException { 
+
+    public void addClient(String name, String surname, String numTel) throws IllegalArgumentException { 
         id++;
         String code = String.valueOf(id);
-        if(!(name.equals("") || name == null) && !(surname.equals("") || surname == null)){
+        if(!(name == null || name.equals("")) && !(surname == null || surname.equals(""))){
         if(isNew(name, surname)){
         Client c = new Client(code,name,surname);
-        if(numTel.equals("") || numTel == null){
-            c.setNumTel(numTel);
-        }
+        c.setNumTel(numTel);
         clientRepository.save(c);
         }
         else{
-            //fai scegliere se effettivamente è un oomonimo o è un errore inserirlo di nuovo
+            throw new DuplicateException("Cliente duplicato o omonimo");
         }
     }
+    else{
         throw new DomainException("Name and Surname are required");
+    }
     }
 
     public void removeClient(Client c){
@@ -47,6 +48,20 @@ public class ClientService {
             .findFirst()
             .isEmpty();
 
+    }
+
+    public List<Client> clientsdoingLesson(List<String> codes){
+        Boolean allPresent = codes.stream()
+                                  .allMatch(c -> clientRepository.findAll().stream()
+                                                            .filter(cl -> cl.getCode().equals(c))
+                                                            .findFirst()
+                                                            .isPresent());
+        if(!allPresent){
+            throw new DomainException("tutti i clienti dovrebbero essere registrati prima");
+        }
+        return clientRepository.findAll().stream()
+                                    .filter(c -> codes.contains(c.getCode()))
+                                    .toList();
     }
 
 

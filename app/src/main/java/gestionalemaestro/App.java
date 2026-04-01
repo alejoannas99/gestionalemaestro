@@ -3,6 +3,11 @@
  */
 package gestionalemaestro;
 
+import gestionalemaestro.store.*;
+
+import java.util.List;
+
+import gestionalemaestro.service.*;
 public class App {
     public String getGreeting() {
         return "Hello World!";
@@ -10,5 +15,20 @@ public class App {
 
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
+    ClientRepository clientRepository = new ClientRepository();
+    ClientService clientService = new ClientService(clientRepository);
+    LessonRepository lessonRepository = new LessonRepository();
+    LessonService lessonService = new LessonService(lessonRepository);
+    clientService.addClient("matteo","ciao","3350928486");
+    clientService.addClient("alessandro","perron","3335600982");
+    lessonService.newLesson("10:00", "2024-06-01", "11:00", clientService.clientsdoingLesson(List.of("1","2")));
+    
+
+    
+
+
+    
     }
+    
+
 }
