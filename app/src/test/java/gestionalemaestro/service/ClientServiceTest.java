@@ -3,6 +3,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import gestionalemaestro.model.Client;
 import gestionalemaestro.store.ClientRepository;
@@ -20,7 +21,7 @@ public class ClientServiceTest {
         ClientRepository repo = new ClientRepository();
         ClientService service = new ClientService(repo);
 
-        service.addClient("Mario", "Rossi", "123456");
+        service.addClient("Mario", "Rossi", Optional.of("123456"));
 
         List<Client> clients = service.showClients();
         assertEquals(1, clients.size());
@@ -36,10 +37,10 @@ public class ClientServiceTest {
         ClientRepository repo = new ClientRepository();
         ClientService service = new ClientService(repo);
 
-        service.addClient("Mario", "Rossi", "123456");
+        service.addClient("Mario", "Rossi", Optional.of("123456"));
 
         Exception e = assertThrows(RuntimeException.class, () -> {
-            service.addClient("Mario", "Rossi", "654321");
+            service.addClient("Mario", "Rossi", Optional.of("654321"));
         });
         assertTrue(e.getMessage().contains("duplicato"));
     }
@@ -50,7 +51,7 @@ public class ClientServiceTest {
         ClientRepository repo = new ClientRepository();
         ClientService service = new ClientService(repo);
 
-        service.addClient("Luca", "Bianchi", "987654");
+        service.addClient("Luca", "Bianchi", Optional.of("987654"));
         Client c = service.showClients().get(0);
 
         service.removeClient(c);
@@ -65,7 +66,7 @@ public class ClientServiceTest {
         ClientService service = new ClientService(repo);
 
         assertTrue(service.isNew("Anna", "Verdi"));
-        service.addClient("Anna", "Verdi", "111222");
+        service.addClient("Anna", "Verdi", Optional.of("111222"));
         assertFalse(service.isNew("Anna", "Verdi"));
     }
 }

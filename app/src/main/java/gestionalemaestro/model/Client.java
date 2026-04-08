@@ -37,8 +37,8 @@ public class Client {
     public Optional<String> getNumTel() {
         return numTel;
     }
-    public void setNumTel(String numTel){
-        this.numTel=Optional.of(numTel);
+    public void setNumTel(Optional<String>  numTel){
+        this.numTel=numTel;
     }
 
     public int getLessonsAttended() {

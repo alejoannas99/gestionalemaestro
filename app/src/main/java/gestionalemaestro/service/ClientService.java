@@ -1,6 +1,7 @@
 package gestionalemaestro.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import gestionalemaestro.model.Client;
 import gestionalemaestro.store.ClientRepository;
@@ -16,13 +17,15 @@ public class ClientService {
     }
 
 
-    public void addClient(String name, String surname, String numTel) throws IllegalArgumentException { 
+    public void addClient(String name, String surname, Optional<String> numTel) throws IllegalArgumentException { 
         id++;
         String code = String.valueOf(id);
         if(!(name == null || name.equals("")) && !(surname == null || surname.equals(""))){
         if(isNew(name, surname)){
         Client c = new Client(code,name,surname);
-        c.setNumTel(numTel);
+        if(numTel != null){
+            c.setNumTel(numTel);
+        }
         clientRepository.save(c);
         }
         else{
