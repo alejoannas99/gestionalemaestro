@@ -8,8 +8,10 @@ import gestionalemaestro.store.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import gestionalemaestro.model.Client;
 import gestionalemaestro.service.*;
 public class App {
     public String getGreeting() {
@@ -42,5 +44,9 @@ public class App {
             }
     
         }
-    }
+    Map<Client, Integer> cph = lessonService.clientsWithLessonsInDate(LocalDate.of(2024, 6, 1));
+    cph.forEach((client, count) -> {
+        System.out.println(client.getName() + " " + client.getSurname() + " has " + count + " lessons on 2024-06-01");
+    });
+}
 }

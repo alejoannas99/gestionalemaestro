@@ -69,4 +69,20 @@ public class ClientServiceTest {
         service.addClient("Anna", "Verdi", Optional.of("111222"));
         assertFalse(service.isNew("Anna", "Verdi"));
     }
+
+    @Test
+    void testClientsDoingLesson() {
+        resetStore();
+        ClientRepository repo = new ClientRepository();
+        ClientService service = new ClientService(repo);
+
+        service.addClient("Marco", "Neri", Optional.of("555666"));
+        service.addClient("Sara", "Gialli", Optional.of("777888"));
+
+        List<Client> clients = service.clientsdoingLesson(List.of("1", "2"));
+        assertEquals(2, clients.size());
+        assertEquals("Marco", clients.get(0).getName());
+        assertEquals("Sara", clients.get(1).getName());
+    }                   
+     
 }
