@@ -67,6 +67,12 @@ public class ClientService {
                                     .toList();
     }
 
+    public Client clientWithMoreLessonsAttended(){
+        return clientRepository.findAll().stream()
+                                         .max((c1,c2) -> Integer.compare(c1.getLessonsAttended(), c2.getLessonsAttended()))
+                                         .orElse(null);
+    }
+
 
 
 

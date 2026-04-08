@@ -9,6 +9,8 @@ import gestionalemaestro.store.FakeStore;
 import gestionalemaestro.store.LessonRepository;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 
 public class LessonServiceTest {
@@ -30,13 +32,13 @@ public class LessonServiceTest {
         List<Client> clients = new ArrayList<>();
         clients.add(createClient("1", "Mario", "Rossi"));
 
-        service.newLesson("10:00", "2026-04-01", "11:00", clients);
+        service.newLesson(LocalTime.of(10, 0), LocalDate.of(2026, 4, 1), LocalTime.of(11, 0), clients);
 
         List<Lesson> lessons = service.showLessons();
         assertEquals(1, lessons.size());
         Lesson l = lessons.get(0);
-        assertEquals("10:00", l.getStart());
-        assertEquals("11:00", l.getFinish());
+        assertEquals(LocalTime.of(10, 0), l.getStart());
+        assertEquals(LocalTime.of(11, 0), l.getFinish());
         assertEquals(1, l.getClients().size());
         assertEquals("Mario", l.getClients().get(0).getName());
 
@@ -51,7 +53,7 @@ public class LessonServiceTest {
         LessonService service = new LessonService(repo);
 
         Exception e = assertThrows(RuntimeException.class, () -> {
-            service.newLesson("10:00", "2026-04-01", "11:00", new ArrayList<>());
+            service.newLesson(LocalTime.of(10, 0), LocalDate.of(2026, 4, 1), LocalTime.of(11, 0), new ArrayList<>());
         });
         assertTrue(e.getMessage().contains("At least one client"));
     }
@@ -65,7 +67,7 @@ public class LessonServiceTest {
         List<Client> clients = new ArrayList<>();
         clients.add(createClient("1", "Mario", "Rossi"));
 
-        service.newLesson("10:00", "2026-04-01", "11:00", clients);
+        service.newLesson(LocalTime.of(10, 0), LocalDate.of(2026, 4, 1), LocalTime.of(11, 0), clients);
         assertEquals(1, service.amountOfLessons());
 
         Lesson l = service.showLessons().get(0);
@@ -82,18 +84,18 @@ public class LessonServiceTest {
         List<Client> clients = new ArrayList<>();
         clients.add(createClient("1", "Mario", "Rossi"));
 
-        service.newLesson("10:00", "2026-04-01", "11:00", clients);
+        service.newLesson(LocalTime.of(10, 0), LocalDate.of(2026, 4, 1), LocalTime.of(11, 0), clients);
         Lesson l = service.showLessons().get(0);
 
         // Modifica: nuova ora e nuovo client
         List<Client> newClients = new ArrayList<>();
         newClients.add(createClient("2", "Luca", "Bianchi"));
 
-        service.modifyLesson(l, "2026-04-01", "12:00", "13:00", newClients);
+        service.modifyLesson(l, LocalDate.of(2026, 4, 1), LocalTime.of(12, 0), LocalTime.of(13, 0), newClients);
         Lesson modified = service.showLessons().get(0);
 
-        assertEquals("12:00", modified.getStart());
-        assertEquals("13:00", modified.getFinish());
+        assertEquals(LocalTime.of(12, 0), modified.getStart());
+        assertEquals(LocalTime.of(13, 0), modified.getFinish());
         assertEquals(1, modified.getClients().size());
         assertEquals("Luca", modified.getClients().get(0).getName());
     }

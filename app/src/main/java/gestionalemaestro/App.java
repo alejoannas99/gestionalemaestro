@@ -5,6 +5,8 @@ package gestionalemaestro;
 
 import gestionalemaestro.store.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,19 +24,23 @@ public class App {
     LessonService lessonService = new LessonService(lessonRepository);
     clientService.addClient("matteo","ollio",null);
     clientService.addClient("alessandro","perron",Optional.of("3335600982"));
-    lessonService.newLesson("10:00", "2024-06-01", "11:00", clientService.clientsdoingLesson(List.of("1","2")));
+    clientService.addClient("giovanni","rossi",Optional.of("3335600982"));  
+    clientService.addClient("pietro","nardi",null);
+    lessonService.newLesson(LocalTime.of(10, 0), LocalDate.of(2024, 6, 1), LocalTime.of(11, 0), clientService.clientsdoingLesson(List.of("1","2")));
     System.out.println("Clients:");
     List<gestionalemaestro.model.Client> clients = clientService.showClients();
     for (gestionalemaestro.model.Client c : clients) {
         System.out.println(c.getName() + " " + c.getSurname() + " - " + c.getNumTel());      
-    
-
-    
-
-
-    
     }
+    System.out.println("Lessons:");
+    List<gestionalemaestro.model.Lesson> lessons = lessonService.showLessons();
+    for (gestionalemaestro.model.Lesson l : lessons) {
+        System.out.println("Lesson on " + l.getDate() + " from " + l.getStart() + " to " + l.getFinish());
+        System.out.println("Clients attending:");
+        for (gestionalemaestro.model.Client c : l.getClients()) {
+            System.out.println("- " + c.getName() + " " + c.getSurname());  
+            }
     
-
-}
+        }
+    }
 }

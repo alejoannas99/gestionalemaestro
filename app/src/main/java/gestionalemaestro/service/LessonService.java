@@ -1,5 +1,9 @@
 package gestionalemaestro.service;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Lesson;
@@ -14,7 +18,7 @@ public class LessonService {
               this.lessonRepository = lessonRepository;
        }
 
-       public void newLesson(String start, String date, String finish, List<Client> clients) throws IllegalArgumentException {
+       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients) throws IllegalArgumentException {
               if(clients.size() == 0){
                      throw new DomainException("At least one client is required");       
               }
@@ -34,7 +38,7 @@ public class LessonService {
                      .ifPresent(l -> lessonRepository.remove(l));
        }      
 
-       public void modifyLesson(Lesson l, String newDate, String newstart, String newfinish, List<Client> newclients) throws IllegalArgumentException {
+       public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients) throws IllegalArgumentException {
               if(newclients.size() == 0){
                      throw new DomainException("At least one client is required");       
               }              
@@ -49,6 +53,16 @@ public class LessonService {
 
        public int amountOfLessons(){
               return lessonRepository.findAll().size();
+       }
+
+       public Map<Client, Integer> clientsWithLessonsInDate(LocalDate date){
+              return lessonRepository.findAll().stream()
+                                     .filter(l -> l.getDate().equals(date))
+                                     .flatMap(l -> l.getClients().stream())
+                                     .collect(Collectors.groupingBy(
+                                          c -> c,
+                                          Collectors.summingInt(c -> 1)
+                                     ));
        }
 
        
