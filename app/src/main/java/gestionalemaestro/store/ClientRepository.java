@@ -1,19 +1,17 @@
 package gestionalemaestro.store;
+
 import java.util.List;
 
 import gestionalemaestro.model.Client;
 
-public class ClientRepository {
+public interface ClientRepository {
+    
+    void save(Client client);
 
-    public void save(Client client) {
-        FakeStore.clients.add(client);
-    }
+    void remove(Client client);
 
-    public void remove(Client client){
-        FakeStore.clients.remove(client);
-    }
+    List<Client> findAll();
 
-    public List<Client> findAll(){
-        return List.copyOf(FakeStore.clients);
-    }
+    List<Client> findByCodes(List<String> codes);
+
 }

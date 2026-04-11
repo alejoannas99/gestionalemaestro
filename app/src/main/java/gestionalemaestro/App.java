@@ -20,10 +20,11 @@ public class App {
 
     public static void main(String[] args) {
     System.out.println(new App().getGreeting());
-    ClientRepository clientRepository = new ClientRepository();
+    ClientRepositoryFakeStore clientRepository = new ClientRepositoryFakeStore();
     ClientService clientService = new ClientService(clientRepository);
-    LessonRepository lessonRepository = new LessonRepository();
+    LessonRepositoryFakeStore lessonRepository = new LessonRepositoryFakeStore();
     LessonService lessonService = new LessonService(lessonRepository);
+    StatsService statsService = new StatsService(clientRepository, lessonRepository);
     clientService.addClient("matteo","ollio",null);
     clientService.addClient("alessandro","perron",Optional.of("3335600982"));
     clientService.addClient("giovanni","rossi",Optional.of("3335600982"));  
@@ -44,9 +45,9 @@ public class App {
             }
     
         }
-    Map<Client, Integer> cph = lessonService.clientsWithLessonsInDate(LocalDate.of(2024, 6, 1));
+    Map<Client, Integer> cph = statsService.clientsWithLessonsInDate(LocalDate.of(2024, 6, 1));
     cph.forEach((client, count) -> {
         System.out.println(client.getName() + " " + client.getSurname() + " has " + count + " lessons on 2024-06-01");
-    });
-}
+        });
+    }
 }

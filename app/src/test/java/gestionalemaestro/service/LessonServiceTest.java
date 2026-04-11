@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.store.FakeStore;
-import gestionalemaestro.store.LessonRepository;
+import gestionalemaestro.store.LessonRepositoryFakeStore;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -26,7 +26,7 @@ public class LessonServiceTest {
     @Test
     void testNewLesson() {
         resetStore();
-        LessonRepository repo = new LessonRepository();
+        LessonRepositoryFakeStore repo = new LessonRepositoryFakeStore();
         LessonService service = new LessonService(repo);
 
         List<Client> clients = new ArrayList<>();
@@ -49,7 +49,7 @@ public class LessonServiceTest {
     @Test
     void testNewLessonThrowsOnNoClients() {
         resetStore();
-        LessonRepository repo = new LessonRepository();
+        LessonRepositoryFakeStore repo = new LessonRepositoryFakeStore();
         LessonService service = new LessonService(repo);
 
         Exception e = assertThrows(RuntimeException.class, () -> {
@@ -61,24 +61,25 @@ public class LessonServiceTest {
     @Test
     void testRemoveLesson() {
         resetStore();
-        LessonRepository repo = new LessonRepository();
+        LessonRepositoryFakeStore repo = new LessonRepositoryFakeStore();
         LessonService service = new LessonService(repo);
+        StatsService statsService = new StatsService(null, repo); // Passa null per il client repository, non serve in questo test
 
         List<Client> clients = new ArrayList<>();
         clients.add(createClient("1", "Mario", "Rossi"));
 
         service.newLesson(LocalTime.of(10, 0), LocalDate.of(2026, 4, 1), LocalTime.of(11, 0), clients);
-        assertEquals(1, service.amountOfLessons());
+        assertEquals(1, statsService.countLessons());
 
         Lesson l = service.showLessons().get(0);
         service.removeLesson(l.getId());
-        assertEquals(0, service.amountOfLessons());
+        assertEquals(0, statsService.countLessons());
     }
 
     @Test
     void testModifyLesson() {
         resetStore();
-        LessonRepository repo = new LessonRepository();
+        LessonRepositoryFakeStore repo = new LessonRepositoryFakeStore();
         LessonService service = new LessonService(repo);
 
         List<Client> clients = new ArrayList<>();

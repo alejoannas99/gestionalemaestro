@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import gestionalemaestro.model.Client;
-import gestionalemaestro.store.ClientRepository;
+import gestionalemaestro.store.ClientRepositoryFakeStore;
 
 
 public class ClientService {
 
     private int id = 0;
-    private final ClientRepository clientRepository;
+    private final ClientRepositoryFakeStore clientRepository;
     
-    public ClientService(ClientRepository clientRepository) {
+    public ClientService(ClientRepositoryFakeStore clientRepository) {
         this.clientRepository = clientRepository;
     }
 
@@ -53,25 +53,7 @@ public class ClientService {
 
     }
 
-    public List<Client> clientsdoingLesson(List<String> codes){
-        Boolean allPresent = codes.stream()
-                                  .allMatch(c -> clientRepository.findAll().stream()
-                                                            .filter(cl -> cl.getCode().equals(c))
-                                                            .findFirst()
-                                                            .isPresent());
-        if(!allPresent){
-            throw new DomainException("tutti i clienti dovrebbero essere registrati prima");
-        }
-        return clientRepository.findAll().stream()
-                                    .filter(c -> codes.contains(c.getCode()))
-                                    .toList();
-    }
 
-    public Client clientWithMoreLessonsAttended(){
-        return clientRepository.findAll().stream()
-                                         .max((c1,c2) -> Integer.compare(c1.getLessonsAttended(), c2.getLessonsAttended()))
-                                         .orElse(null);
-    }
 
 
 

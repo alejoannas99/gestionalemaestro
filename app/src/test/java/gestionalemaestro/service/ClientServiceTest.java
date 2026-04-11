@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import gestionalemaestro.model.Client;
-import gestionalemaestro.store.ClientRepository;
+import gestionalemaestro.store.ClientRepositoryFakeStore;
 import gestionalemaestro.store.FakeStore;
 
 public class ClientServiceTest {
@@ -18,7 +18,7 @@ public class ClientServiceTest {
     @Test
     void testAddClient() {
         resetStore();
-        ClientRepository repo = new ClientRepository();
+        ClientRepositoryFakeStore repo = new ClientRepositoryFakeStore();
         ClientService service = new ClientService(repo);
 
         service.addClient("Mario", "Rossi", Optional.of("123456"));
@@ -34,7 +34,7 @@ public class ClientServiceTest {
     @Test
     void testAddDuplicateClientThrows() {
         resetStore();
-        ClientRepository repo = new ClientRepository();
+        ClientRepositoryFakeStore repo = new ClientRepositoryFakeStore();
         ClientService service = new ClientService(repo);
 
         service.addClient("Mario", "Rossi", Optional.of("123456"));
@@ -48,7 +48,7 @@ public class ClientServiceTest {
     @Test
     void testRemoveClient() {
         resetStore();
-        ClientRepository repo = new ClientRepository();
+        ClientRepositoryFakeStore repo = new ClientRepositoryFakeStore();
         ClientService service = new ClientService(repo);
 
         service.addClient("Luca", "Bianchi", Optional.of("987654"));
@@ -62,7 +62,7 @@ public class ClientServiceTest {
     @Test
     void testIsNew() {
         resetStore();
-        ClientRepository repo = new ClientRepository();
+        ClientRepositoryFakeStore repo = new ClientRepositoryFakeStore();
         ClientService service = new ClientService(repo);
 
         assertTrue(service.isNew("Anna", "Verdi"));
@@ -73,7 +73,7 @@ public class ClientServiceTest {
     @Test
     void testClientsDoingLesson() {
         resetStore();
-        ClientRepository repo = new ClientRepository();
+        ClientRepositoryFakeStore repo = new ClientRepositoryFakeStore();
         ClientService service = new ClientService(repo);
 
         service.addClient("Marco", "Neri", Optional.of("555666"));
