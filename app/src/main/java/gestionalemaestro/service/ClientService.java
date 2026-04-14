@@ -53,6 +53,10 @@ public class ClientService {
 
     }
 
+    public List<Client> clientsdoingLesson(List<String> clientIds){
+        return clientRepository.findByCodes(clientIds);
+    }
+
 
 
 
