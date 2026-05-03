@@ -6,14 +6,18 @@ import java.util.List;
 
 import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Lesson;
-import gestionalemaestro.store.LessonRepositoryFakeStore;
+import gestionalemaestro.store.LessonRepository;
 
+
+import org.springframework.stereotype.Service;
+
+@Service
 public class LessonService {
 
        private int id = 0;
-       private final LessonRepositoryFakeStore lessonRepository;
+       private final LessonRepository lessonRepository;
 
-       public LessonService(LessonRepositoryFakeStore lessonRepository) {
+       public LessonService(LessonRepository lessonRepository) {
               this.lessonRepository = lessonRepository;
        }
 
@@ -45,6 +49,10 @@ public class LessonService {
               lessonRepository.remove(l);
               Lesson modifiedLesson = new Lesson(l.getId(), newDate, newstart, newfinish, newclients);
               lessonRepository.save(modifiedLesson);
+       }
+
+       public Lesson findById(int id) {
+              return lessonRepository.findById(id);
        }
 
        public List<Lesson> showLessons(){

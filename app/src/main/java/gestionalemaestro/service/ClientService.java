@@ -4,15 +4,17 @@ import java.util.List;
 import java.util.Optional;
 
 import gestionalemaestro.model.Client;
-import gestionalemaestro.store.ClientRepositoryFakeStore;
+import gestionalemaestro.store.ClientRepository;
 
+import org.springframework.stereotype.Service;
 
+@Service
 public class ClientService {
 
     private int id = 0;
-    private final ClientRepositoryFakeStore clientRepository;
+    private final ClientRepository clientRepository;
     
-    public ClientService(ClientRepositoryFakeStore clientRepository) {
+    public ClientService(ClientRepository clientRepository) {
         this.clientRepository = clientRepository;
     }
 
@@ -52,6 +54,13 @@ public class ClientService {
             .isEmpty();
 
     }
+
+    public Client findByCode(String code) {
+        return showClients().stream()
+            .filter(c -> c.getCode().equals(code))
+            .findFirst()
+            .orElse(null);
+}
 
     public List<Client> clientsdoingLesson(List<String> clientIds){
         return clientRepository.findByCodes(clientIds);

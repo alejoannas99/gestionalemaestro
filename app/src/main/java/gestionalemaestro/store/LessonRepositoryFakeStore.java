@@ -3,6 +3,9 @@ import java.util.List;
 
 import gestionalemaestro.model.Lesson;
 
+import org.springframework.stereotype.Repository;
+
+@Repository
 public class LessonRepositoryFakeStore implements LessonRepository {
     
     public void save(Lesson lesson) {

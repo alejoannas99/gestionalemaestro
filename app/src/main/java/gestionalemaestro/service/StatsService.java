@@ -4,15 +4,20 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import gestionalemaestro.model.Client;
-import gestionalemaestro.store.ClientRepositoryFakeStore;
-import gestionalemaestro.store.LessonRepositoryFakeStore;
 
+import gestionalemaestro.store.ClientRepository;
+import gestionalemaestro.store.LessonRepository;
+
+
+import org.springframework.stereotype.Service;
+
+@Service
 public class StatsService {
 
-    private final ClientRepositoryFakeStore clientRepository;
-    private final LessonRepositoryFakeStore lessonRepository;
+    private final ClientRepository clientRepository;
+    private final LessonRepository lessonRepository;
 
-    public StatsService(ClientRepositoryFakeStore clientRepository, LessonRepositoryFakeStore lessonRepository) {
+    public StatsService(ClientRepository clientRepository, LessonRepository lessonRepository) {
         this.clientRepository = clientRepository;
         this.lessonRepository = lessonRepository;
     }

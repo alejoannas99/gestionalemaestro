@@ -1,0 +1,69 @@
+package gestionalemaestro.controller;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import gestionalemaestro.model.Client;
+import gestionalemaestro.service.ClientService;
+import gestionalemaestro.service.DomainException;
+import gestionalemaestro.service.DuplicateException;
+
+@RestController
+@RequestMapping("/clienti")
+public class ClientController {
+
+    private final ClientService clientService;
+
+    public ClientController(ClientService clientService) {
+        this.clientService = clientService;
+    }
+
+    @GetMapping
+    public List<Client> getClienti() {
+        return clientService.showClients();
+    }
+
+    @PostMapping
+    public ResponseEntity<String> addCliente(@RequestBody ClienteRequest request) {
+        try {
+            clientService.addClient(
+                request.nome(),
+                request.cognome(),
+                request.telefono() != null ? Optional.of(request.telefono()) : null
+            );
+            return ResponseEntity.status(201).body("Cliente aggiunto");
+        } catch (DuplicateException e) {
+            return ResponseEntity.status(409).body(e.getMessage());
+        } catch (DomainException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{code}")
+    public ResponseEntity<String> removeCliente(@PathVariable String code) {
+        Client c = clientService.findByCode(code);
+        if (c == null) {
+            return ResponseEntity.status(404).body("Cliente non trovato");
+        }
+        clientService.removeClient(c);
+        return ResponseEntity.ok("Cliente rimosso");
+}
+
+    @PutMapping("/{code}")
+    public ResponseEntity<String> updateCliente(@PathVariable String code, @RequestBody ClienteRequest request) {
+        Client c = clientService.findByCode(code);
+        if (c == null) {
+            return ResponseEntity.status(404).body("Cliente non trovato");
+        }
+        c.update(request.nome(), request.cognome());
+        if (request.telefono() != null) {
+            c.setNumTel(Optional.of(request.telefono()));
+        }
+        return ResponseEntity.ok("Cliente aggiornato");
+    }
+
+    record ClienteRequest(String nome, String cognome, String telefono) {}
+}

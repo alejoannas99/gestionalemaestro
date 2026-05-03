@@ -4,6 +4,9 @@ import java.util.List;
 import gestionalemaestro.model.Client;
 import gestionalemaestro.service.DomainException;
 
+import org.springframework.stereotype.Repository;
+
+@Repository
 public class ClientRepositoryFakeStore implements ClientRepository {
 
     public void save(Client client) {
