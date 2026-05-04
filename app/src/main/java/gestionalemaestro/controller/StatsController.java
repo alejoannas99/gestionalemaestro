@@ -1,7 +1,6 @@
 package gestionalemaestro.controller;
 
 import java.time.LocalDate;
-import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,10 +41,10 @@ public class StatsController {
     public ResponseEntity<?> lezioniPerData(@RequestParam String data) {
         try {
             LocalDate date = LocalDate.parse(data);
-            Map<Client, Integer> result = statsService.clientsWithLessonsInDate(date);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(statsService.clientsWithLessonsInDate(date));
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Formato data non valido, usa: YYYY-MM-DD");
         }
     }
 }
+

@@ -1,13 +1,12 @@
 package gestionalemaestro.service;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import gestionalemaestro.model.Client;
-
 import gestionalemaestro.store.ClientRepository;
 import gestionalemaestro.store.LessonRepository;
-
 
 import org.springframework.stereotype.Service;
 
@@ -30,21 +29,32 @@ public class StatsService {
         return lessonRepository.findAll().size();
     }
 
-    public Map<Client, Integer> clientsWithLessonsInDate(LocalDate date){
-              return lessonRepository.findAll().stream()
-                                     .filter(l -> l.getDate().equals(date))
-                                     .flatMap(l -> l.getClients().stream())
-                                     .collect(Collectors.groupingBy(
-                                          c -> c,
-                                          Collectors.summingInt(c -> 1)
-                                     ));
-       }   
-       
-    public Client clientWithMoreLessonsAttended(){
-        return clientRepository.findAll().stream()
-                                         .max((c1,c2) -> Integer.compare(c1.getLessonsAttended(), c2.getLessonsAttended()))
-                                         .orElse(null);
-    }       
+    public List<ClienteLessonCount> clientsWithLessonsInDate(LocalDate date) {
+        Map<Client, Integer> map = lessonRepository.findAll().stream()
+            .filter(l -> l.getDate().equals(date))
+            .flatMap(l -> l.getClients().stream())
+            .collect(Collectors.groupingBy(
+                c -> c,
+                Collectors.summingInt(c -> 1)
+            ));
 
-    
+        return map.entrySet().stream()
+            .map(e -> new ClienteLessonCount(
+                e.getKey().getCode(),
+                e.getKey().getName(),
+                e.getKey().getSurname(),
+                e.getValue()
+            ))
+            .toList();
+    }
+
+    public Client clientWithMoreLessonsAttended() {
+        return clientRepository.findAll().stream()
+            .max((c1, c2) -> Integer.compare(
+                c1.getLessonsAttended(),
+                c2.getLessonsAttended()))
+            .orElse(null);
+    }
+
+    public record ClienteLessonCount(String code, String nome, String cognome, int lezioni) {}
 }
