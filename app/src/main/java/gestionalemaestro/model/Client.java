@@ -1,30 +1,36 @@
 package gestionalemaestro.model;
 
+import jakarta.persistence.*;
 import java.util.Optional;
 
+@Entity
+@Table(name = "clienti")
 public class Client {
 
-    private String code;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer code;
     private String name;
     private String surname;
-    private Optional<String> numTel = Optional.empty();
+    private String numTel;
     private int lessonsAttended;
     
     
     
-    public Client(String code, String name, String surname) {
-        this.code = code;
+    public Client(String name, String surname) {
         this.name = name;
         this.surname = surname;
         this.lessonsAttended = 0;
     }
+
+    public Client() {}
 
     public void update(String name, String surname){
         this.name=name;
         this.surname=surname;
     }
 
-    public String getCode() {
+    public Integer getCode() {
         return code;
     }    
     
@@ -35,10 +41,11 @@ public class Client {
         return surname;
     }
     public Optional<String> getNumTel() {
-        return numTel;
+        return Optional.ofNullable(numTel);
     }
-    public void setNumTel(Optional<String>  numTel){
-        this.numTel=numTel;
+    
+    public void setNumTel(Optional<String> numTel) {
+        this.numTel = numTel.orElse(null);
     }
 
     public int getLessonsAttended() {

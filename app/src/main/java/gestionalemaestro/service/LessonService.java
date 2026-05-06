@@ -7,6 +7,7 @@ import java.util.List;
 import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.store.LessonRepository;
+import gestionalemaestro.store.ClientRepository;
 
 
 import org.springframework.stereotype.Service;
@@ -14,11 +15,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class LessonService {
 
-       private int id = 0;
        private final LessonRepository lessonRepository;
+       private final ClientRepository clientRepository;
 
-       public LessonService(LessonRepository lessonRepository) {
+       public LessonService(LessonRepository lessonRepository, ClientRepository clientRepository) {
               this.lessonRepository = lessonRepository;
+              this.clientRepository = clientRepository;
        }
 
        public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients) throws IllegalArgumentException {
@@ -28,11 +30,11 @@ public class LessonService {
               else if(finish.isBefore(start) || finish.equals(start)){
                      throw new DomainException("Finish time must be after start time");
               }
-              id++; 
-              Lesson l = new Lesson(id, date, start, finish, clients);
+              Lesson l = new Lesson(date, start, finish, clients);
               lessonRepository.save(l);
               for(Client c : clients){
                      c.attendLesson();
+                     clientRepository.save(c);
               }
         
        }
@@ -47,7 +49,7 @@ public class LessonService {
                      throw new DomainException("At least one client is required");       
               }              
               lessonRepository.remove(l);
-              Lesson modifiedLesson = new Lesson(l.getId(), newDate, newstart, newfinish, newclients);
+              Lesson modifiedLesson = new Lesson(newDate, newstart, newfinish, newclients);
               lessonRepository.save(modifiedLesson);
        }
 

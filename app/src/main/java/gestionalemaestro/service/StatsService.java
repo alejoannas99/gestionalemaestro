@@ -56,5 +56,5 @@ public class StatsService {
             .orElse(null);
     }
 
-    public record ClienteLessonCount(String code, String nome, String cognome, int lezioni) {}
+    public record ClienteLessonCount(Integer code, String nome, String cognome, int lezioni) {}
 }

@@ -1,13 +1,33 @@
 package gestionalemaestro.store;
 
 import java.util.List;
-
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 import gestionalemaestro.model.Lesson;
 
-public class DbLessonRepository {
+@Repository
+@Primary
+public class DbLessonRepository implements LessonRepository {
 
-    public void save(Lesson lesson) { /* query SQL */ }
-    public void remove(Lesson lesson) { /* query SQL */ }
-    public List<Lesson> findAll() { /* query SQL */ return null;}
-    public List<Lesson> findById(int id) { /* query SQL */ return null;}
+    private final JpaLessonRepository jpa;
+
+    public DbLessonRepository(JpaLessonRepository jpa) {
+        this.jpa = jpa;
+    }
+
+    public void save(Lesson lesson) {
+        jpa.save(lesson);
+    }
+
+    public void remove(Lesson lesson) {
+        jpa.delete(lesson);
+    }
+
+    public List<Lesson> findAll() {
+        return jpa.findAll();
+    }
+
+    public Lesson findById(int id) {
+        return jpa.findById(id).orElse(null);
+    }
 }

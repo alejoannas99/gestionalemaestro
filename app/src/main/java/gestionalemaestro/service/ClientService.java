@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ClientService {
 
-    private int id = 0;
     private final ClientRepository clientRepository;
     
     public ClientService(ClientRepository clientRepository) {
@@ -20,11 +19,9 @@ public class ClientService {
 
 
     public void addClient(String name, String surname, Optional<String> numTel) throws IllegalArgumentException { 
-        id++;
-        String code = String.valueOf(id);
         if(!(name == null || name.equals("")) && !(surname == null || surname.equals(""))){
         if(isNew(name, surname)){
-        Client c = new Client(code,name,surname);
+        Client c = new Client(name,surname);
         if(numTel != null){
             c.setNumTel(numTel);
         }
@@ -55,14 +52,14 @@ public class ClientService {
 
     }
 
-    public Client findByCode(String code) {
+    public Client findByCode(Integer code) {
         return showClients().stream()
             .filter(c -> c.getCode().equals(code))
             .findFirst()
             .orElse(null);
 }
 
-    public List<Client> clientsdoingLesson(List<String> clientIds){
+    public List<Client> clientsdoingLesson(List<Integer> clientIds){
         return clientRepository.findByCodes(clientIds);
     }
 

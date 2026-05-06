@@ -22,7 +22,7 @@ public class ClientRepositoryFakeStore implements ClientRepository {
     }
 
 
-    public List<Client> findByCodes(List<String> codes){
+    public List<Client> findByCodes(List<Integer> codes){
         Boolean allPresent = codes.stream()
                                   .allMatch(c -> findAll().stream()
                                                             .filter(cl -> cl.getCode().equals(c))

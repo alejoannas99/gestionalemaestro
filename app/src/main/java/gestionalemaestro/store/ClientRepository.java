@@ -12,6 +12,6 @@ public interface ClientRepository {
 
     List<Client> findAll();
 
-    List<Client> findByCodes(List<String> codes);
+    List<Client> findByCodes(List<Integer> codes);
 
 }

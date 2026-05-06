@@ -43,7 +43,7 @@ public class ClientController {
     }
 
     @DeleteMapping("/{code}")
-    public ResponseEntity<String> removeCliente(@PathVariable String code) {
+    public ResponseEntity<String> removeCliente(@PathVariable Integer code) {
         Client c = clientService.findByCode(code);
         if (c == null) {
             return ResponseEntity.status(404).body("Cliente non trovato");
@@ -53,7 +53,7 @@ public class ClientController {
 }
 
     @PutMapping("/{code}")
-    public ResponseEntity<String> updateCliente(@PathVariable String code, @RequestBody ClienteRequest request) {
+    public ResponseEntity<String> updateCliente(@PathVariable Integer code, @RequestBody ClienteRequest request) {
         Client c = clientService.findByCode(code);
         if (c == null) {
             return ResponseEntity.status(404).body("Cliente non trovato");

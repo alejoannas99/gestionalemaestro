@@ -74,5 +74,5 @@ public class LessonController {
     }
 }
 
-    record LezioneRequest(String data, String inizio, String fine, List<String> codiciClienti) {}
+    record LezioneRequest(String data, String inizio, String fine, List<Integer> codiciClienti) {}
 }
