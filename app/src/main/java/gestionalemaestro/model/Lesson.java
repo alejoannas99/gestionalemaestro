@@ -15,7 +15,7 @@ public class Lesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
     name = "lezione_cliente",
     joinColumns = @JoinColumn(name = "lezione_id"),

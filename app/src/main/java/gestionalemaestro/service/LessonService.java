@@ -24,6 +24,15 @@ public class LessonService {
        }
 
        public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients) throws IllegalArgumentException {
+       boolean hasOverlap = lessonRepository.findAll().stream()
+                                            .filter(l -> l.getDate().equals(date))
+                                            .anyMatch(l -> l.getClients().stream()
+                                                                         .anyMatch(c -> clients.contains(c)) &&!(finish.isBefore(l.getStart()) || start.isAfter(l.getFinish()))
+                                          );
+    
+              if (hasOverlap) {
+              throw new DomainException("Uno o più clienti hanno già una lezione in questo orario");
+       }
               if(clients.size() == 0){
                      throw new DomainException("At least one client is required");       
               }
