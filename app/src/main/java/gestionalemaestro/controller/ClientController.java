@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Instructor;
 import gestionalemaestro.service.ClientService;
 import gestionalemaestro.service.DomainException;
 import gestionalemaestro.service.DuplicateException;
@@ -21,9 +23,14 @@ public class ClientController {
         this.clientService = clientService;
     }
 
+    private Instructor getLoggedInstructor() {
+        return (Instructor) SecurityContextHolder.getContext()
+            .getAuthentication().getPrincipal();
+    }
+
     @GetMapping
     public List<Client> getClienti() {
-        return clientService.showClients();
+        return clientService.showClients(getLoggedInstructor());
     }
 
     @PostMapping
@@ -32,11 +39,12 @@ public class ClientController {
             clientService.addClient(
                 request.nome(),
                 request.cognome(),
-                request.telefono() != null ? Optional.of(request.telefono()) : null
+                request.telefono() != null ? Optional.of(request.telefono()) : null,
+                getLoggedInstructor()
             );
-            return ResponseEntity.status(201).body("Cliente aggiunto");
+        return ResponseEntity.status(201).body("Cliente aggiunto");
         } catch (DuplicateException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+        return ResponseEntity.status(409).body(e.getMessage());
         } catch (DomainException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
@@ -44,17 +52,17 @@ public class ClientController {
 
     @DeleteMapping("/{code}")
     public ResponseEntity<String> removeCliente(@PathVariable Integer code) {
-        Client c = clientService.findByCode(code);
+        Client c = clientService.findByCode(code, getLoggedInstructor());
         if (c == null) {
             return ResponseEntity.status(404).body("Cliente non trovato");
         }
         clientService.removeClient(c);
         return ResponseEntity.ok("Cliente rimosso");
-}
+    }
 
     @PutMapping("/{code}")
-    public ResponseEntity<String> updateCliente(@PathVariable Integer code, @RequestBody ClienteRequest request) {
-        Client c = clientService.findByCode(code);
+    public ResponseEntity<String> updateCliente (@PathVariable Integer code, @RequestBody ClienteRequest request) {
+        Client c = clientService.findByCode(code, getLoggedInstructor());
         if (c == null) {
             return ResponseEntity.status(404).body("Cliente non trovato");
         }
@@ -62,6 +70,7 @@ public class ClientController {
         if (request.telefono() != null) {
             c.setNumTel(Optional.of(request.telefono()));
         }
+        clientService.updateClient(c);
         return ResponseEntity.ok("Cliente aggiornato");
     }
 

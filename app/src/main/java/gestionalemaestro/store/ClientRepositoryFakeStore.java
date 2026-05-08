@@ -2,6 +2,7 @@ package gestionalemaestro.store;
 import java.util.List;
 
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Instructor;
 import gestionalemaestro.service.DomainException;
 
 import org.springframework.stereotype.Repository;
@@ -34,5 +35,11 @@ public class ClientRepositoryFakeStore implements ClientRepository {
         return findAll().stream()
                         .filter(c -> codes.contains(c.getCode()))
                         .toList();
+    }
+
+    public List<Client> findByInstructor(Instructor instructor) {
+        return FakeStore.clients.stream()
+            .filter(c -> c.getInstructor().equals(instructor))
+            .toList();
     }
 }

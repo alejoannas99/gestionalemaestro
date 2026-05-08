@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Instructor;
 import gestionalemaestro.service.DomainException;
 
 @Repository
@@ -34,5 +35,9 @@ public class DbClientRepository implements ClientRepository {
             throw new DomainException("Uno o più clienti non trovati");
         }
         return found;
+    }
+
+    public List<Client> findByInstructor(Instructor instructor) {
+        return jpa.findByInstructor(instructor);
     }
 }

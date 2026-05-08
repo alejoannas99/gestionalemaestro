@@ -8,6 +8,7 @@ import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.store.LessonRepository;
 import gestionalemaestro.store.ClientRepository;
+import gestionalemaestro.model.Instructor;
 
 
 import org.springframework.stereotype.Service;
@@ -23,8 +24,8 @@ public class LessonService {
               this.clientRepository = clientRepository;
        }
 
-       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients) throws IllegalArgumentException {
-       boolean hasOverlap = lessonRepository.findAll().stream()
+       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients, Instructor instructor) throws IllegalArgumentException {
+       boolean hasOverlap = lessonRepository.findByInstructor(instructor).stream()
                                             .filter(l -> l.getDate().equals(date))
                                             .anyMatch(l -> l.getClients().stream()
                                                                          .anyMatch(c -> clients.contains(c)) &&!(finish.isBefore(l.getStart()) || start.isAfter(l.getFinish()))
@@ -40,6 +41,7 @@ public class LessonService {
                      throw new DomainException("Finish time must be after start time");
               }
               Lesson l = new Lesson(date, start, finish, clients);
+              l.setInstructor(instructor);
               lessonRepository.save(l);
               for(Client c : clients){
                      c.attendLesson();
@@ -62,12 +64,16 @@ public class LessonService {
               lessonRepository.save(modifiedLesson);
        }
 
-       public Lesson findById(int id) {
-              return lessonRepository.findById(id);
+       public Lesson findById(int id, Instructor instructor) {
+              Lesson l = lessonRepository.findById(id);
+              if (l == null || !l.getInstructor().equals(instructor)) {
+              return null;
+       }
+       return l;
        }
 
-       public List<Lesson> showLessons(){
-              return lessonRepository.findAll();
+       public List<Lesson> showLessons(Instructor instructor) {
+              return lessonRepository.findByInstructor(instructor);
        }
 
 

@@ -1,14 +1,16 @@
 package gestionalemaestro.service;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Instructor;
 import gestionalemaestro.store.ClientRepository;
 import gestionalemaestro.store.LessonRepository;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class StatsService {
@@ -21,16 +23,16 @@ public class StatsService {
         this.lessonRepository = lessonRepository;
     }
 
-    public int countClients() {
-        return clientRepository.findAll().size();
+    public int countClients(Instructor instructor) {
+        return clientRepository.findByInstructor(instructor).size();
     }
 
-    public int countLessons() {
-        return lessonRepository.findAll().size();
+    public int countLessons(Instructor instructor) {
+        return lessonRepository.findByInstructor(instructor).size();
     }
 
-    public List<ClienteLessonCount> clientsWithLessonsInDate(LocalDate date) {
-        Map<Client, Integer> map = lessonRepository.findAll().stream()
+    public List<ClienteLessonCount> clientsWithLessonsInDate(LocalDate date, Instructor instructor) {
+        Map<Client, Integer> map = lessonRepository.findByInstructor(instructor).stream()
             .filter(l -> l.getDate().equals(date))
             .flatMap(l -> l.getClients().stream())
             .collect(Collectors.groupingBy(
@@ -48,8 +50,8 @@ public class StatsService {
             .toList();
     }
 
-    public Client clientWithMoreLessonsAttended() {
-        return clientRepository.findAll().stream()
+    public Client clientWithMoreLessonsAttended(Instructor instructor) {
+        return clientRepository.findByInstructor(instructor).stream()
             .max((c1, c2) -> Integer.compare(
                 c1.getLessonsAttended(),
                 c2.getLessonsAttended()))

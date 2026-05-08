@@ -3,6 +3,8 @@ package gestionalemaestro.store;
 import java.util.List;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
+
+import gestionalemaestro.model.Instructor;
 import gestionalemaestro.model.Lesson;
 
 @Repository
@@ -29,5 +31,9 @@ public class DbLessonRepository implements LessonRepository {
 
     public Lesson findById(int id) {
         return jpa.findById(id).orElse(null);
+    }
+
+    public List<Lesson> findByInstructor(Instructor instructor) {
+        return jpa.findByInstructor(instructor);
     }
 }

@@ -3,6 +3,8 @@ package gestionalemaestro.model;
 import jakarta.persistence.*;
 import java.util.Optional;
 
+
+
 @Entity
 @Table(name = "clienti")
 public class Client {
@@ -14,6 +16,10 @@ public class Client {
     private String surname;
     private String numTel;
     private int lessonsAttended;
+
+    @ManyToOne
+    @JoinColumn(name = "instructor_id")
+    private Instructor instructor;
     
     
     
@@ -54,6 +60,14 @@ public class Client {
 
     public void attendLesson(){
         this.lessonsAttended++;
+    }
+
+    public Instructor getInstructor() { 
+        return instructor; 
+    }
+    
+    public void setInstructor(Instructor instructor) { 
+        this.instructor = instructor; 
     }
 
 

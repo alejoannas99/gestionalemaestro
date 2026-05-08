@@ -3,9 +3,11 @@ package gestionalemaestro.controller;
 import java.time.LocalDate;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Instructor;
 import gestionalemaestro.service.StatsService;
 
 @RestController
@@ -18,19 +20,24 @@ public class StatsController {
         this.statsService = statsService;
     }
 
+    private Instructor getLoggedInstructor() {
+        return (Instructor) SecurityContextHolder.getContext()
+            .getAuthentication().getPrincipal();
+    }
+
     @GetMapping("/clienti")
     public int countClienti() {
-        return statsService.countClients();
+        return statsService.countClients(getLoggedInstructor());
     }
 
     @GetMapping("/lezioni")
     public int countLezioni() {
-        return statsService.countLessons();
+        return statsService.countLessons(getLoggedInstructor());
     }
 
     @GetMapping("/top-cliente")
     public ResponseEntity<?> topCliente() {
-        Client c = statsService.clientWithMoreLessonsAttended();
+        Client c = statsService.clientWithMoreLessonsAttended(getLoggedInstructor());
         if (c == null) {
             return ResponseEntity.status(404).body("Nessun cliente registrato");
         }
@@ -41,7 +48,7 @@ public class StatsController {
     public ResponseEntity<?> lezioniPerData(@RequestParam String data) {
         try {
             LocalDate date = LocalDate.parse(data);
-            return ResponseEntity.ok(statsService.clientsWithLessonsInDate(date));
+            return ResponseEntity.ok(statsService.clientsWithLessonsInDate(date, getLoggedInstructor()));
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Formato data non valido, usa: YYYY-MM-DD");
         }

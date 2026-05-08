@@ -2,6 +2,7 @@ package gestionalemaestro.store;
 
 import java.util.List;
 
+import gestionalemaestro.model.Instructor;
 import gestionalemaestro.model.Lesson;
 
 public interface LessonRepository {
@@ -12,5 +13,7 @@ public interface LessonRepository {
     List<Lesson> findAll();
 
     Lesson findById(int id);
+
+    List<Lesson> findByInstructor(Instructor instructor);
 
 }

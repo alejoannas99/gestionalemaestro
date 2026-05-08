@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
 @Entity
 @Table(name = "lezioni")
 public class Lesson {
@@ -25,6 +26,10 @@ public class Lesson {
     private LocalDate date;
     private LocalTime start;
     private LocalTime finish;
+
+    @ManyToOne
+    @JoinColumn(name = "instructor_id")
+    private Instructor instructor;
     
     
     
@@ -55,6 +60,14 @@ public class Lesson {
     public LocalDate getDate() {
         return date;
     }
+
+    public Instructor getInstructor() { 
+        return instructor; 
+    }
+    
+    public void setInstructor(Instructor instructor) { 
+        this.instructor = instructor; 
+    }    
 
 
 }
