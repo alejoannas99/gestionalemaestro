@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import gestionalemaestro.dto.ClientDTO;
 import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Instructor;
 import gestionalemaestro.service.ClientService;
@@ -29,8 +30,11 @@ public class ClientController {
     }
 
     @GetMapping
-    public List<Client> getClienti() {
-        return clientService.showClients(getLoggedInstructor());
+    public List<ClientDTO> getClienti() {
+        return clientService.showClients(getLoggedInstructor())
+            .stream()
+            .map(ClientDTO::from)
+            .toList();
     }
 
     @PostMapping

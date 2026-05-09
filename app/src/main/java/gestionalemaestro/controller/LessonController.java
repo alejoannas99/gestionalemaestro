@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import gestionalemaestro.dto.LessonDTO;
 import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Instructor;
 import gestionalemaestro.model.Lesson;
@@ -33,8 +34,11 @@ public class LessonController {
     }
 
     @GetMapping
-    public List<Lesson> getLezioni() {
-        return lessonService.showLessons(getLoggedInstructor());
+    public List<LessonDTO> getLezioni() {
+        return lessonService.showLessons(getLoggedInstructor())
+            .stream()
+            .map(LessonDTO::from)
+            .toList();
     }
 
     @PostMapping
