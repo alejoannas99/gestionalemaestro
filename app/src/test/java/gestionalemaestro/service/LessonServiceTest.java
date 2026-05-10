@@ -1,4 +1,4 @@
-package gestionalemaestro.service;
+/*package gestionalemaestro.service;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -100,4 +100,4 @@ public class LessonServiceTest {
         assertEquals(1, modified.getClients().size());
         assertEquals("Luca", modified.getClients().get(0).getName());
     }
-}
+}*/

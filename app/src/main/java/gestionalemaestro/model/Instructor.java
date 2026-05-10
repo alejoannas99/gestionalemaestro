@@ -1,7 +1,6 @@
 package gestionalemaestro.model;
 
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "instructors")
@@ -15,7 +14,6 @@ public class Instructor {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore
     private String password;
 
     private String name;

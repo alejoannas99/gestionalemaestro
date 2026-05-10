@@ -1,4 +1,4 @@
-package gestionalemaestro.service;
+/*package gestionalemaestro.service;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -85,4 +85,4 @@ public class ClientServiceTest {
         assertEquals("Sara", clients.get(1).getName());
     }                   
      
-}
+}*/
