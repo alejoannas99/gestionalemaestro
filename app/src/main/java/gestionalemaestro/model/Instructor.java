@@ -34,4 +34,17 @@ public class Instructor {
     public String getName() { return name; }
     public String getSurname() { return surname; }
     public void setPassword(String password) { this.password = password; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Instructor)) return false;
+        Instructor that = (Instructor) o;
+        return java.util.Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id);
+    }
 }
