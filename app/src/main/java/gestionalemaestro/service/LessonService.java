@@ -56,12 +56,14 @@ public class LessonService {
        }     
 
        public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients) throws IllegalArgumentException {
-              if(newclients.size() == 0){
-                     throw new DomainException("At least one client is required");       
-              }              
-              lessonRepository.remove(l);
-              Lesson modifiedLesson = new Lesson(newDate, newstart, newfinish, newclients);
-              lessonRepository.save(modifiedLesson);
+       if (newclients.isEmpty()) {
+              throw new DomainException("At least one client is required");
+       }
+       l.setDate(newDate);
+       l.setStart(newstart);
+       l.setFinish(newfinish);
+       l.setClients(newclients);
+       lessonRepository.save(l);
        }
 
        public Lesson findById(int id, Instructor instructor) {
