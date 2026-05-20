@@ -2,183 +2,283 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getClienti, addCliente, updateCliente, deleteCliente } from '../services/api';
 
-function ClientiPage({ onLogout }) {
+// ── Hook responsività ────────────────────────────────────────────────────────
+function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    useEffect(() => {
+        const handler = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handler);
+        return () => window.removeEventListener('resize', handler);
+    }, []);
+    return isMobile;
+}
+
+// ── Helper colore avatar ─────────────────────────────────────────────────────
+const AVATAR_COLORS = ['#4361ee', '#e63946', '#2a9d8f', '#e76f51', '#8338ec', '#3a86ff'];
+function avatarColor(name) {
+    return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// COMPONENTE PRINCIPALE
+// ══════════════════════════════════════════════════════════════════════════════
+export default function ClientiPage({ onLogout }) {
+    const navigate = useNavigate();
+    const isMobile = useIsMobile();
+
     const [clienti, setClienti] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [cerca, setCerca] = useState('');
+    const [ordine, setOrdine] = useState('nome');
     const [showForm, setShowForm] = useState(false);
     const [clienteSelezionato, setClienteSelezionato] = useState(null);
-    const [nome, setNome] = useState('');
-    const [cognome, setCognome] = useState('');
-    const [telefono, setTelefono] = useState('');
+    const [formData, setFormData] = useState({ nome: '', cognome: '', telefono: '' });
     const [errore, setErrore] = useState('');
-    const navigate = useNavigate();
 
-    useEffect(() => {
-        caricaClienti();
-    }, []);
+    useEffect(() => { caricaClienti(); }, []);
 
     const caricaClienti = () => {
         getClienti()
             .then(r => r.json())
-            .then(data => {
-                setClienti(data);
-                setLoading(false);
-            });
+            .then(data => { setClienti(Array.isArray(data) ? data : []); setLoading(false); })
+            .catch(() => setLoading(false));
     };
+
+    const clientiFiltrati = clienti
+        .filter(c => {
+            const q = cerca.toLowerCase();
+            return c.name.toLowerCase().includes(q) || c.surname.toLowerCase().includes(q);
+        })
+        .sort((a, b) => ordine === 'lezioni'
+            ? b.lessonsAttended - a.lessonsAttended
+            : a.name.localeCompare(b.name)
+        );
 
     const apriFormNuovo = () => {
         setClienteSelezionato(null);
-        setNome('');
-        setCognome('');
-        setTelefono('');
+        setFormData({ nome: '', cognome: '', telefono: '' });
         setErrore('');
         setShowForm(true);
     };
 
     const apriFormModifica = (cliente) => {
         setClienteSelezionato(cliente);
-        setNome(cliente.name);
-        setCognome(cliente.surname);
-        setTelefono(cliente.numTel || '');
+        setFormData({ nome: cliente.name, cognome: cliente.surname, telefono: cliente.numTel || '' });
         setErrore('');
         setShowForm(true);
-    };
-
-    const chiudiForm = () => {
-        setShowForm(false);
-        setClienteSelezionato(null);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrore('');
         try {
-            let res;
-            if (clienteSelezionato) {
-                res = await updateCliente(clienteSelezionato.code, nome, cognome, telefono || null);
-            } else {
-                res = await addCliente(nome, cognome, telefono || null);
-            }
-            if (res.ok) {
-                chiudiForm();
-                caricaClienti();
-            } else {
-                const msg = await res.text();
-                setErrore(msg);
-            }
-        } catch (err) {
-            setErrore('Errore di connessione');
-        }
+            const res = clienteSelezionato
+                ? await updateCliente(clienteSelezionato.code, formData.nome, formData.cognome, formData.telefono || null)
+                : await addCliente(formData.nome, formData.cognome, formData.telefono || null);
+            if (res.ok) { setShowForm(false); caricaClienti(); }
+            else setErrore(await res.text());
+        } catch { setErrore('Errore di connessione'); }
     };
 
     const handleDelete = async (code) => {
-        if (!window.confirm('Sei sicuro di voler eliminare questo cliente?')) return;
+        if (!window.confirm('Eliminare questo cliente?')) return;
         const res = await deleteCliente(code);
-        if (res.ok) {
-            caricaClienti();
-        } else {
-            alert('Errore durante l\'eliminazione');
-        }
+        if (res.ok) caricaClienti();
     };
 
-    if (loading) return <p style={{ padding: '24px' }}>Caricamento...</p>;
+    if (loading) return <div style={s.loading}>Caricamento...</div>;
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <h1 style={styles.titolo}>GestionaleMaestro</h1>
-                <button style={styles.logoutBtn} onClick={onLogout}>Esci</button>
-            </div>
+        <div style={s.page}>
 
-            <div style={styles.nav}>
-                <button style={styles.navBtn} onClick={() => navigate('/dashboard')}>Dashboard</button>
-                <button style={styles.navBtnActive}>Clienti</button>
-                <button style={styles.navBtn} onClick={() => navigate('/lezioni')}>Lezioni</button>
-            </div>
-
-            <div style={styles.toolbar}>
-                <h2 style={styles.sezione}>I tuoi clienti ({clienti.length})</h2>
-                <button style={styles.addBtn} onClick={apriFormNuovo}>+ Aggiungi cliente</button>
-            </div>
-
-            {showForm && (
-                <div style={styles.formCard}>
-                    <h3 style={styles.formTitolo}>
-                        {clienteSelezionato ? 'Modifica cliente' : 'Nuovo cliente'}
-                    </h3>
-                    <form onSubmit={handleSubmit} style={styles.form}>
-                        <input style={styles.input} placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} required />
-                        <input style={styles.input} placeholder="Cognome" value={cognome} onChange={e => setCognome(e.target.value)} required />
-                        <input style={styles.input} placeholder="Telefono (opzionale)" value={telefono} onChange={e => setTelefono(e.target.value)} />
-                        {errore && <p style={styles.errore}>{errore}</p>}
-                        <div style={styles.formBtns}>
-                            <button style={styles.submitBtn} type="submit">
-                                {clienteSelezionato ? 'Salva modifiche' : 'Aggiungi'}
-                            </button>
-                            <button style={styles.cancelBtn} type="button" onClick={chiudiForm}>Annulla</button>
-                        </div>
-                    </form>
+            {/* ── HEADER ── */}
+            <div style={s.header}>
+                <span style={s.brand}>GestionaleMaestro</span>
+                <div style={s.nav}>
+                    <button style={s.navBtn} onClick={() => navigate('/dashboard')}>
+                        {isMobile ? '🏠' : 'Dashboard'}
+                    </button>
+                    <button style={{ ...s.navBtn, ...s.navActive }}>
+                        {isMobile ? '👥' : 'Clienti'}
+                    </button>
+                    <button style={s.navBtn} onClick={() => navigate('/lezioni')}>
+                        {isMobile ? '📅' : 'Lezioni'}
+                    </button>
                 </div>
-            )}
+                <button style={s.logoutBtn} onClick={onLogout}>
+                    {isMobile ? '↩' : 'Esci'}
+                </button>
+            </div>
 
-            {clienti.length === 0 ? (
-                <p style={styles.empty}>Nessun cliente ancora. Aggiungine uno!</p>
-            ) : (
-                <div style={styles.lista}>
-                    {clienti.map(cliente => (
-                        <div key={cliente.code} style={styles.card}>
-                            <div style={styles.cardInfo}>
-                                <div style={styles.avatar}>
-                                    {cliente.name[0]}{cliente.surname[0]}
+            {/* ── TOOLBAR ──
+                Desktop: tutto su una riga
+                Mobile: titolo+badge sopra, ricerca+filtri+aggiungi sotto */}
+            <div style={{ ...s.toolbar, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '10px' : '0', padding: isMobile ? '14px 16px' : '20px 24px' }}>
+                <div style={s.toolbarLeft}>
+                    <span style={s.titoloPagina}>Clienti</span>
+                    <span style={s.badge}>{clientiFiltrati.length}</span>
+                </div>
+                <div style={{ ...s.toolbarRight, width: isMobile ? '100%' : 'auto', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                    <input
+                        style={{ ...s.searchInput, flex: isMobile ? 1 : 'none', minWidth: isMobile ? '0' : '200px' }}
+                        placeholder="🔍  Cerca cliente..."
+                        value={cerca}
+                        onChange={e => setCerca(e.target.value)}
+                    />
+                    <div style={s.ordineGroup}>
+                        <button style={{ ...s.ordineBtn, ...(ordine === 'nome' ? s.ordineBtnActive : {}) }}
+                            onClick={() => setOrdine('nome')}>A–Z</button>
+                        <button style={{ ...s.ordineBtn, ...(ordine === 'lezioni' ? s.ordineBtnActive : {}) }}
+                            onClick={() => setOrdine('lezioni')}>Lezioni ↓</button>
+                    </div>
+                    <button style={s.addBtn} onClick={apriFormNuovo}>+ Aggiungi</button>
+                </div>
+            </div>
+
+            {/* ── LISTA ── */}
+            <div style={{ padding: isMobile ? '0 16px 24px' : '0 24px 24px' }}>
+                {clientiFiltrati.length === 0 ? (
+                    <div style={s.empty}>
+                        <p style={{ fontSize: '48px', marginBottom: '16px' }}>👤</p>
+                        <p style={s.emptyTesto}>
+                            {cerca ? `Nessun cliente trovato per "${cerca}"` : 'Nessun cliente ancora. Aggiungine uno!'}
+                        </p>
+                    </div>
+                ) : (
+                    <div style={s.lista}>
+                        {clientiFiltrati.map(cliente => (
+                            <div key={cliente.code} style={s.card}>
+                                <div style={s.cardLeft}>
+                                    <div style={{ ...s.avatar, backgroundColor: avatarColor(cliente.name) }}>
+                                        {cliente.name[0]}{cliente.surname[0]}
+                                    </div>
+                                    <div>
+                                        <p style={s.cardNome}>{cliente.name} {cliente.surname}</p>
+                                        <p style={s.cardDettaglio}>
+                                            {cliente.numTel
+                                                ? <span>📞 {cliente.numTel}</span>
+                                                : <span style={{ color: '#bbb' }}>Nessun telefono</span>}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p style={styles.cardNome}>{cliente.name} {cliente.surname}</p>
-                                    <p style={styles.cardDettaglio}>
-                                        {cliente.numTel || 'Nessun telefono'} · {cliente.lessonsAttended} lezioni
-                                    </p>
+                                <div style={s.cardRight}>
+                                    {/* Badge lezioni — nascosto su mobile piccolo per spazio */}
+                                    {!isMobile && (
+                                        <div style={s.lezioniBadge}>
+                                            <span style={s.lezioniNum}>{cliente.lessonsAttended}</span>
+                                            <span style={s.lezioniLabel}>lezioni</span>
+                                        </div>
+                                    )}
+                                    {isMobile && (
+                                        <span style={s.lezioniMobile}>{cliente.lessonsAttended} lez.</span>
+                                    )}
+                                    <button style={s.editBtn} onClick={() => apriFormModifica(cliente)}>
+                                        {isMobile ? '✏️' : 'Modifica'}
+                                    </button>
+                                    <button style={s.deleteBtn} onClick={() => handleDelete(cliente.code)}>
+                                        {isMobile ? '🗑️' : 'Elimina'}
+                                    </button>
                                 </div>
                             </div>
-                            <div style={styles.cardBtns}>
-                                <button style={styles.editBtn} onClick={() => apriFormModifica(cliente)}>Modifica</button>
-                                <button style={styles.deleteBtn} onClick={() => handleDelete(cliente.code)}>Elimina</button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* ── FORM MODALE ── */}
+            {showForm && (
+                <div style={s.overlay} onClick={() => setShowForm(false)}>
+                    <div style={{
+                        ...s.modal,
+                        // su mobile il modale occupa quasi tutto lo schermo dal basso
+                        ...(isMobile ? {
+                            position: 'fixed', bottom: 0, left: 0, right: 0,
+                            borderRadius: '20px 20px 0 0',
+                            width: '100%', maxWidth: '100%',
+                            padding: '24px 20px 32px'
+                        } : {})
+                    }} onClick={e => e.stopPropagation()}>
+                        {/* maniglia visiva su mobile (stile bottom sheet) */}
+                        {isMobile && <div style={s.handle} />}
+                        <h3 style={s.modalTitolo}>
+                            {clienteSelezionato ? 'Modifica cliente' : 'Nuovo cliente'}
+                        </h3>
+                        <form onSubmit={handleSubmit} style={s.form}>
+                            <label style={s.formLabel}>Nome</label>
+                            <input style={s.input} placeholder="Es. Marco"
+                                value={formData.nome}
+                                onChange={e => setFormData(p => ({ ...p, nome: e.target.value }))} required />
+                            <label style={s.formLabel}>Cognome</label>
+                            <input style={s.input} placeholder="Es. Rossi"
+                                value={formData.cognome}
+                                onChange={e => setFormData(p => ({ ...p, cognome: e.target.value }))} required />
+                            <label style={s.formLabel}>
+                                Telefono <span style={s.opzionale}>(opzionale)</span>
+                            </label>
+                            <input style={s.input} placeholder="Es. 333 1234567"
+                                value={formData.telefono}
+                                onChange={e => setFormData(p => ({ ...p, telefono: e.target.value }))} />
+                            {errore && <p style={s.errore}>{errore}</p>}
+                            <div style={s.formBtns}>
+                                <button style={s.submitBtn} type="submit">
+                                    {clienteSelezionato ? 'Salva' : 'Aggiungi'}
+                                </button>
+                                <button style={s.cancelBtn} type="button" onClick={() => setShowForm(false)}>
+                                    Annulla
+                                </button>
                             </div>
-                        </div>
-                    ))}
+                        </form>
+                    </div>
                 </div>
             )}
         </div>
     );
 }
 
-const styles = {
-    container: { padding: '24px', maxWidth: '900px', margin: '0 auto' },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-    titolo: { fontSize: '22px', color: '#1a1a2e' },
-    logoutBtn: { padding: '8px 16px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' },
-    nav: { display: 'flex', gap: '12px', marginBottom: '32px' },
-    navBtn: { padding: '10px 24px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' },
-    navBtnActive: { padding: '10px 24px', backgroundColor: '#e8e8e8', color: '#1a1a2e', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
-    toolbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
-    sezione: { fontSize: '18px', color: '#333' },
-    addBtn: { padding: '10px 20px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' },
-    formCard: { backgroundColor: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', marginBottom: '24px' },
-    formTitolo: { fontSize: '16px', color: '#1a1a2e', marginBottom: '16px' },
+const s = {
+    page: { minHeight: '100vh', backgroundColor: '#f4f5f7', fontFamily: "'Segoe UI', sans-serif" },
+    loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#666' },
+    header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: '56px', backgroundColor: '#1a1a2e', color: 'white' },
+    brand: { fontWeight: '700', fontSize: '16px', letterSpacing: '0.5px' },
+    nav: { display: 'flex', gap: '4px' },
+    navBtn: { padding: '6px 16px', backgroundColor: 'transparent', color: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
+    navActive: { backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: '600' },
+    logoutBtn: { padding: '6px 14px', backgroundColor: 'rgba(231,76,60,0.8)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
+    toolbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+    toolbarLeft: { display: 'flex', alignItems: 'center', gap: '10px' },
+    titoloPagina: { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
+    badge: { backgroundColor: '#4361ee', color: 'white', borderRadius: '20px', padding: '2px 10px', fontSize: '13px', fontWeight: '600' },
+    toolbarRight: { display: 'flex', alignItems: 'center', gap: '10px' },
+    searchInput: { padding: '8px 14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e', outline: 'none' },
+    ordineGroup: { display: 'flex', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' },
+    ordineBtn: { padding: '8px 12px', backgroundColor: 'white', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#555' },
+    ordineBtnActive: { backgroundColor: '#1a1a2e', color: 'white' },
+    addBtn: { padding: '8px 16px', backgroundColor: '#4361ee', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', whiteSpace: 'nowrap' },
+    empty: { textAlign: 'center', marginTop: '80px' },
+    emptyTesto: { color: '#888', fontSize: '15px' },
+    lista: { display: 'flex', flexDirection: 'column', gap: '10px' },
+    card: { backgroundColor: 'white', padding: '14px 16px', borderRadius: '12px', boxShadow: '0 1px 8px rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    cardLeft: { display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 },
+    avatar: { width: '44px', height: '44px', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', flexShrink: 0 },
+    cardNome: { fontWeight: '600', color: '#1a1a2e', marginBottom: '3px', fontSize: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+    cardDettaglio: { fontSize: '13px', color: '#666' },
+    cardRight: { display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 },
+    lezioniBadge: { display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#f0f4ff', borderRadius: '10px', padding: '6px 12px', minWidth: '56px' },
+    lezioniNum: { fontSize: '18px', fontWeight: '700', color: '#4361ee', lineHeight: 1 },
+    lezioniLabel: { fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '2px' },
+    lezioniMobile: { fontSize: '12px', fontWeight: '600', color: '#4361ee', backgroundColor: '#f0f4ff', padding: '4px 8px', borderRadius: '8px' },
+    editBtn: { padding: '6px 12px', backgroundColor: '#f0f4ff', color: '#4361ee', border: '1px solid #d0d9ff', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
+    deleteBtn: { padding: '6px 12px', backgroundColor: '#fff0f0', color: '#e74c3c', border: '1px solid #ffd0d0', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
+    overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
+    modal: { backgroundColor: 'white', borderRadius: '16px', padding: '28px', width: '380px', maxWidth: '90vw', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' },
+    handle: { width: '40px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px', margin: '0 auto 20px' },
+    modalTitolo: { fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
-    input: { padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' },
-    errore: { color: 'red', fontSize: '13px' },
-    formBtns: { display: 'flex', gap: '12px' },
-    submitBtn: { padding: '10px 24px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' },
-    cancelBtn: { padding: '10px 24px', backgroundColor: '#e8e8e8', color: '#333', border: 'none', borderRadius: '8px', cursor: 'pointer' },
-    empty: { color: '#888', textAlign: 'center', marginTop: '48px' },
-    lista: { display: 'flex', flexDirection: 'column', gap: '12px' },
-    card: { backgroundColor: 'white', padding: '16px 20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    cardInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
-    avatar: { width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#1a1a2e', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px' },
-    cardNome: { fontWeight: 'bold', color: '#1a1a2e', marginBottom: '4px' },
-    cardDettaglio: { fontSize: '13px', color: '#888' },
-    cardBtns: { display: 'flex', gap: '8px' },
-    editBtn: { padding: '6px 14px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-    deleteBtn: { padding: '6px 14px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+    formLabel: { fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
+    opzionale: { fontWeight: '400', textTransform: 'none', color: '#aaa', fontSize: '11px' },
+    input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none', color: '#1a1a2e' },
+    errore: { color: '#e74c3c', fontSize: '13px' },
+    formBtns: { display: 'flex', gap: '12px', marginTop: '4px' },
+    submitBtn: { flex: 1, padding: '11px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+    cancelBtn: { flex: 1, padding: '11px', backgroundColor: '#f0f0f0', color: '#333', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
 };
-
-export default ClientiPage;
