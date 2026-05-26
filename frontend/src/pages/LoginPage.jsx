@@ -1,4 +1,9 @@
+// LoginPage.jsx — modificata rispetto all'originale
+// Unica aggiunta: il Link "Non hai un account? Registrati" in fondo alla card.
+
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+// Link importato da react-router-dom: navigazione interna senza ricaricare la pagina
 import { login } from '../services/api';
 
 function LoginPage({ onLogin }) {
@@ -49,6 +54,14 @@ function LoginPage({ onLogin }) {
                         Accedi
                     </button>
                 </form>
+
+                {/* *** AGGIUNTA *** — fuori dal form, dentro la card.
+                    Link (non <a>) perché siamo in una SPA React:
+                    non vogliamo che il browser ricarichi tutta la pagina. */}
+                <p style={styles.linkTesto}>
+                    Non hai un account?{' '}
+                    <Link to="/register" style={styles.link}>Registrati</Link>
+                </p>
             </div>
         </div>
     );
@@ -63,6 +76,8 @@ const styles = {
     input: { padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none' },
     button: { padding: '12px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', marginTop: '8px' },
     errore: { color: 'red', fontSize: '13px', textAlign: 'center' },
+    linkTesto: { textAlign: 'center', marginTop: '16px', fontSize: '13px', color: '#666' },
+    link: { color: '#1a1a2e', fontWeight: 'bold', textDecoration: 'none' },
 };
 
 export default LoginPage;

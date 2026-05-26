@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 // Funzione helper per fare richieste autenticate
 const authFetch = (url, options = {}) => {
@@ -82,3 +82,9 @@ export const getTopCliente = () =>
 
 export const getLezioniPerData = (data) =>
     authFetch(`${BASE_URL}/stats/lezioni-per-data?data=${data}`);
+
+export const getOreMese = (mese, anno) =>
+    authFetch(`${BASE_URL}/stats/ore-mese?mese=${mese}&anno=${anno}`);
+
+export const getOreAnno = (anno) =>
+    authFetch(`${BASE_URL}/stats/ore-anno?anno=${anno}`);

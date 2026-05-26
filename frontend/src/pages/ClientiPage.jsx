@@ -237,7 +237,7 @@ export default function ClientiPage({ onLogout }) {
 
 const s = {
     page: { minHeight: '100vh', backgroundColor: '#f4f5f7', fontFamily: "'Segoe UI', sans-serif" },
-    loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#666' },
+    loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#6c6767' },
     header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: '56px', backgroundColor: '#1a1a2e', color: 'white' },
     brand: { fontWeight: '700', fontSize: '16px', letterSpacing: '0.5px' },
     nav: { display: 'flex', gap: '4px' },

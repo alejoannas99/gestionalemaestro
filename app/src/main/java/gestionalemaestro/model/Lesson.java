@@ -67,4 +67,8 @@ public class Lesson {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    public double getDurationInHours() {
+        return java.time.Duration.between(start, finish).toMinutes() / 60.0;
+    }
 }

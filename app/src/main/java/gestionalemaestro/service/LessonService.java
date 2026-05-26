@@ -35,10 +35,15 @@ public class LessonService {
               throw new DomainException("Uno o più clienti hanno già una lezione in questo orario");
        }
               if(clients.size() == 0){
-                     throw new DomainException("At least one client is required");       
+                     throw new DomainException("Almeno un cliente è richiesto");       
               }
               else if(finish.isBefore(start) || finish.equals(start)){
-                     throw new DomainException("Finish time must be after start time");
+                     throw new DomainException("La fine della lezione deve essere dopo l'inizio");
+              }
+              else if(lessonRepository.findByInstructor(instructor).stream()
+                                            .filter(l -> l.getDate().equals(date))
+                                            .anyMatch(l -> !(finish.isBefore(l.getStart()) || start.isAfter(l.getFinish())))) {
+                     throw new DomainException("L'insegnante ha già una lezione in questo orario");
               }
               Lesson l = new Lesson(date, start, finish, clients);
               l.setInstructor(instructor);
@@ -52,8 +57,17 @@ public class LessonService {
 
        public void removeLesson(int id) {
               Lesson l = lessonRepository.findById(id);
-              if (l != null) lessonRepository.remove(l);
-       }     
+              if (l != null) {
+              // decrementa lessonsAttended per ogni cliente della lezione
+              for (Client c : l.getClients()) {
+                     if (c.getLessonsAttended() > 0) {
+                     c.decrementLesson();
+                     clientRepository.save(c);
+              }
+              }
+              lessonRepository.remove(l);
+       }
+       }    
 
        public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients) throws IllegalArgumentException {
        if (newclients.isEmpty()) {
@@ -77,8 +91,6 @@ public class LessonService {
        public List<Lesson> showLessons(Instructor instructor) {
               return lessonRepository.findByInstructor(instructor);
        }
-
-
 
        
 

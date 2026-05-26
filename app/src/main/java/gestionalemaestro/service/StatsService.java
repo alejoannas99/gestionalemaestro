@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.Duration;
 
 import org.springframework.stereotype.Service;
 
@@ -57,6 +58,37 @@ public class StatsService {
                 c2.getLessonsAttended()))
             .orElse(null);
     }
+
+    public double countHoursInSeason(Instructor instructor, int year) {
+
+        LocalDate now = LocalDate.now();
+             
+        year = now.getMonthValue() >= 11
+                        ? year
+                        : year - 1;
+
+        LocalDate start = LocalDate.of(year, 11, 1);
+        LocalDate end = LocalDate.of(year + 1, 10, 31);
+
+        return lessonRepository.findByInstructor(instructor)
+                .stream()
+                .filter(l -> !l.getDate().isBefore(start) && !l.getDate().isAfter(end))
+                .mapToDouble(l ->
+                                Duration.between(
+                                    l.getStart(),
+                                    l.getFinish()
+                                ).toMinutes() / 60.0
+                )
+                .sum();
+    }
+
+    public double countHoursxMonth(Instructor instructor, int month, int year) {
+              return lessonRepository.findByInstructor(instructor).stream()
+              .filter(l -> l.getDate().getMonthValue() == month)
+              .filter(l -> l.getDate().getYear() == year)
+              .mapToDouble(l -> l.getDurationInHours())
+              .sum();
+       }
 
     public record ClienteLessonCount(Integer code, String nome, String cognome, int lezioni) {}
 }

@@ -83,5 +83,9 @@ public class Client {
         return java.util.Objects.hash(code);
     }
 
+    public void decrementLesson() {
+        this.lessonsAttended--;
+    }
+
 
 }

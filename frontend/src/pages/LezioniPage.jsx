@@ -465,14 +465,16 @@ export default function LezioniPage({ onLogout }) {
                             width: '100%', maxWidth: '100%',
                             padding: '24px 20px 32px',
                             maxHeight: '90vh',
-                            overflowY: 'auto'
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
                         } : {})
                     }} onClick={e => e.stopPropagation()}>
                         {isMobile && <div style={s.handle} />}
                         <h3 style={s.modalTitolo}>
                             {lezioneSelezionata ? 'Modifica lezione' : 'Nuova lezione'}
                         </h3>
-                        <form onSubmit={handleSubmit} style={s.form}>
+                        <form onSubmit={handleSubmit} style={{ ...s.form, overflowY: 'auto', flex: 1 }}>
                             <label style={s.formLabel}>Data</label>
                             <input style={s.input} type="date" value={formData.data}
                                 onChange={e => setFormData(p => ({ ...p, data: e.target.value }))} required />

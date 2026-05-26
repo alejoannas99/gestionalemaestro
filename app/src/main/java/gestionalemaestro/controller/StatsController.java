@@ -53,5 +53,15 @@ public class StatsController {
             return ResponseEntity.status(400).body("Formato data non valido, usa: YYYY-MM-DD");
         }
     }
+
+    @GetMapping("/ore-anno")
+        public double oreAnno(@RequestParam int anno) {
+        return statsService.countHoursInSeason(getLoggedInstructor(), anno);
+    }
+
+    @GetMapping("/ore-mese")
+    public double oreMese(@RequestParam int mese, @RequestParam int anno) {
+        return statsService.countHoursxMonth(getLoggedInstructor(), mese, anno);
+    }
 }
 
