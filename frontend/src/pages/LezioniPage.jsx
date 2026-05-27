@@ -456,7 +456,7 @@ export default function LezioniPage({ onLogout }) {
 
             {/* ── FORM MODALE ── */}
             {showForm && (
-                <div style={s.overlay} onClick={() => setShowForm(false)}>
+                <div style={{ ...s.overlay, ...(isMobile ? { alignItems: 'flex-end' } : {}) }} onClick={() => setShowForm(false)}>
                     <div style={{
                         ...s.modal,
                         ...(isMobile ? {
@@ -563,16 +563,16 @@ const s = {
     blockClienti: { display: 'block', fontSize: '11px', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     blockDel: { position: 'absolute', top: '3px', right: '5px', backgroundColor: 'transparent', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: 0 },
     overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
-    modal: { backgroundColor: 'white', borderRadius: '16px', padding: '28px', width: '400px', maxWidth: '90vw', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' },
+    modal: { backgroundColor: 'white', borderRadius: '16px', padding: '28px', width: '400px', maxWidth: '90vw', boxSizing: 'border-box' , boxShadow: '0 16px 48px rgba(0,0,0,0.2)'},
     handle: { width: '40px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px', margin: '0 auto 20px' },
     modalTitolo: { fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
     formLabel: { fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
     input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none', color: '#1a1a2e' },
-    select: { flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e', outline: 'none' },
+    select: { flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e', outline: 'none', boxSizing: 'border-box', minWidth: 0 },
     row: { display: 'flex', gap: '12px' },
-    chipGrid: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
-    clientChip: { padding: '6px 14px', borderRadius: '20px', backgroundColor: '#f0f0f0', cursor: 'pointer', fontSize: '13px', userSelect: 'none' },
+    chipGrid: { display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' },
+    clientChip: { padding: '6px 14px', borderRadius: '20px', backgroundColor: '#f0f0f0', cursor: 'pointer', fontSize: '13px', userSelect: 'none', boxSizing: 'border-box' },
     clientChipOn: { backgroundColor: '#1a1a2e', color: 'white' },
     errore: { color: '#e74c3c', fontSize: '13px' },
     submitBtn: { flex: 1, padding: '11px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
