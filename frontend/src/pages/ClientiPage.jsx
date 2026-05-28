@@ -270,7 +270,7 @@ const s = {
     editBtn: { padding: '6px 12px', backgroundColor: '#f0f4ff', color: '#4361ee', border: '1px solid #d0d9ff', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
     deleteBtn: { padding: '6px 12px', backgroundColor: '#fff0f0', color: '#e74c3c', border: '1px solid #ffd0d0', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
     overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
-    modal: { backgroundColor: 'white', borderRadius: '16px', padding: '28px', width: '380px', maxWidth: '90vw', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' },
+    modal: { backgroundColor: 'white', borderRadius: '16px', padding: '28px', width: '380px', maxWidth: '90vw',boxSizing: 'border-box', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' },
     handle: { width: '40px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px', margin: '0 auto 20px' },
     modalTitolo: { fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
