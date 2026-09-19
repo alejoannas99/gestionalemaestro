@@ -7,7 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import gestionalemaestro.model.Client;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 import gestionalemaestro.service.StatsService;
 
 @RestController
@@ -20,24 +20,24 @@ public class StatsController {
         this.statsService = statsService;
     }
 
-    private Instructor getLoggedInstructor() {
-        return (Instructor) SecurityContextHolder.getContext()
+    private User getLoggedUser() {
+        return (User) SecurityContextHolder.getContext()
             .getAuthentication().getPrincipal();
     }
 
     @GetMapping("/clienti")
     public int countClienti() {
-        return statsService.countClients(getLoggedInstructor());
+        return statsService.countClients(getLoggedUser());
     }
 
     @GetMapping("/lezioni")
     public int countLezioni() {
-        return statsService.countLessons(getLoggedInstructor());
+        return statsService.countLessons(getLoggedUser());
     }
 
     @GetMapping("/top-cliente")
     public ResponseEntity<?> topCliente() {
-        Client c = statsService.clientWithMoreLessonsAttended(getLoggedInstructor());
+        Client c = statsService.clientWithMoreLessonsAttended(getLoggedUser());
         if (c == null) {
             return ResponseEntity.status(404).body("Nessun cliente registrato");
         }
@@ -48,7 +48,7 @@ public class StatsController {
     public ResponseEntity<?> lezioniPerData(@RequestParam String data) {
         try {
             LocalDate date = LocalDate.parse(data);
-            return ResponseEntity.ok(statsService.clientsWithLessonsInDate(date, getLoggedInstructor()));
+            return ResponseEntity.ok(statsService.clientsWithLessonsInDate(date, getLoggedUser()));
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Formato data non valido, usa: YYYY-MM-DD");
         }
@@ -56,12 +56,12 @@ public class StatsController {
 
     @GetMapping("/ore-anno")
         public double oreAnno(@RequestParam int anno) {
-        return statsService.countHoursInSeason(getLoggedInstructor(), anno);
+        return statsService.countHoursInSeason(getLoggedUser(), anno);
     }
 
     @GetMapping("/ore-mese")
     public double oreMese(@RequestParam int mese, @RequestParam int anno) {
-        return statsService.countHoursxMonth(getLoggedInstructor(), mese, anno);
+        return statsService.countHoursxMonth(getLoggedUser(), mese, anno);
     }
 }
 

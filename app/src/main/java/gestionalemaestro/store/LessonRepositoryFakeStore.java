@@ -1,7 +1,8 @@
 package gestionalemaestro.store;
 import java.util.List;
 
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.Client;
+import gestionalemaestro.model.User;
 import gestionalemaestro.model.Lesson;
 
 import org.springframework.stereotype.Repository;
@@ -28,9 +29,15 @@ public class LessonRepositoryFakeStore implements LessonRepository {
                                   .orElse(null);
     }
 
-    public List<Lesson> findByInstructor(Instructor instructor) {
+    public List<Lesson> findByInstructor(User instructor) {
         return FakeStore.lessons.stream()
             .filter(l -> l.getInstructor().equals(instructor))
+            .toList();
+    }
+
+    public List<Lesson> findByClients(List<Client> clients) {
+        return FakeStore.lessons.stream()
+            .filter(l -> l.getClients().stream().anyMatch(clients::contains))
             .toList();
     }
 

@@ -8,7 +8,7 @@ import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.store.LessonRepository;
 import gestionalemaestro.store.ClientRepository;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 
 
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class LessonService {
               this.clientRepository = clientRepository;
        }
 
-       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients, Instructor instructor) throws IllegalArgumentException {
+       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients, User instructor) throws IllegalArgumentException {
        boolean hasOverlap = lessonRepository.findByInstructor(instructor).stream()
                                             .filter(l -> l.getDate().equals(date))
                                             .anyMatch(l -> l.getClients().stream()
@@ -73,6 +73,19 @@ public class LessonService {
        if (newclients.isEmpty()) {
               throw new DomainException("At least one client is required");
        }
+       List<Client> oldClients = List.copyOf(l.getClients());
+       for (Client c : oldClients) {
+              if (!newclients.contains(c) && c.getLessonsAttended() > 0) {
+                     c.decrementLesson();
+                     clientRepository.save(c);
+              }
+       }
+       for (Client c : newclients) {
+              if (!oldClients.contains(c)) {
+                     c.attendLesson();
+                     clientRepository.save(c);
+              }
+       }
        l.setDate(newDate);
        l.setStart(newstart);
        l.setFinish(newfinish);
@@ -80,7 +93,7 @@ public class LessonService {
        lessonRepository.save(l);
        }
 
-       public Lesson findById(int id, Instructor instructor) {
+       public Lesson findById(int id, User instructor) {
               Lesson l = lessonRepository.findById(id);
               if (l == null || !l.getInstructor().equals(instructor)) {
               return null;
@@ -88,7 +101,16 @@ public class LessonService {
        return l;
        }
 
-       public List<Lesson> showLessons(Instructor instructor) {
+       // Un USER "è" i Client che hanno il suo stesso nome e cognome (omonimie: da gestire più avanti)
+       public List<Lesson> showLessonsOf(User user) {
+              List<Client> matches = clientRepository.findByFullName(user.getName(), user.getSurname());
+              if (matches.isEmpty()) {
+                     return List.of();
+              }
+              return lessonRepository.findByClients(matches);
+       }
+
+       public List<Lesson> showLessons(User instructor) {
               return lessonRepository.findByInstructor(instructor);
        }
 

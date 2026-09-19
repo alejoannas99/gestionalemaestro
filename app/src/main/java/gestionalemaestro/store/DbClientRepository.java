@@ -4,7 +4,7 @@ import java.util.List;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import gestionalemaestro.model.Client;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 import gestionalemaestro.service.DomainException;
 
 @Repository
@@ -37,7 +37,11 @@ public class DbClientRepository implements ClientRepository {
         return found;
     }
 
-    public List<Client> findByInstructor(Instructor instructor) {
+    public List<Client> findByInstructor(User instructor) {
         return jpa.findByInstructor(instructor);
+    }
+
+    public List<Client> findByFullName(String name, String surname) {
+        return jpa.findByNameIgnoreCaseAndSurnameIgnoreCase(name, surname);
     }
 }

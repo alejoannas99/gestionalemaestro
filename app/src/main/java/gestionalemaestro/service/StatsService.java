@@ -9,7 +9,7 @@ import java.time.Duration;
 import org.springframework.stereotype.Service;
 
 import gestionalemaestro.model.Client;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 import gestionalemaestro.store.ClientRepository;
 import gestionalemaestro.store.LessonRepository;
 
@@ -24,15 +24,15 @@ public class StatsService {
         this.lessonRepository = lessonRepository;
     }
 
-    public int countClients(Instructor instructor) {
+    public int countClients(User instructor) {
         return clientRepository.findByInstructor(instructor).size();
     }
 
-    public int countLessons(Instructor instructor) {
+    public int countLessons(User instructor) {
         return lessonRepository.findByInstructor(instructor).size();
     }
 
-    public List<ClienteLessonCount> clientsWithLessonsInDate(LocalDate date, Instructor instructor) {
+    public List<ClienteLessonCount> clientsWithLessonsInDate(LocalDate date, User instructor) {
         Map<Client, Integer> map = lessonRepository.findByInstructor(instructor).stream()
             .filter(l -> l.getDate().equals(date))
             .flatMap(l -> l.getClients().stream())
@@ -51,7 +51,7 @@ public class StatsService {
             .toList();
     }
 
-    public Client clientWithMoreLessonsAttended(Instructor instructor) {
+    public Client clientWithMoreLessonsAttended(User instructor) {
         return clientRepository.findByInstructor(instructor).stream()
             .max((c1, c2) -> Integer.compare(
                 c1.getLessonsAttended(),
@@ -59,7 +59,7 @@ public class StatsService {
             .orElse(null);
     }
 
-    public double countHoursInSeason(Instructor instructor, int year) {
+    public double countHoursInSeason(User instructor, int year) {
 
         LocalDate now = LocalDate.now();
              
@@ -82,7 +82,7 @@ public class StatsService {
                 .sum();
     }
 
-    public double countHoursxMonth(Instructor instructor, int month, int year) {
+    public double countHoursxMonth(User instructor, int month, int year) {
               return lessonRepository.findByInstructor(instructor).stream()
               .filter(l -> l.getDate().getMonthValue() == month)
               .filter(l -> l.getDate().getYear() == year)

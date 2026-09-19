@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import gestionalemaestro.dto.ClientDTO;
 import gestionalemaestro.model.Client;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 import gestionalemaestro.service.ClientService;
 import gestionalemaestro.service.DomainException;
 import gestionalemaestro.service.DuplicateException;
@@ -24,14 +24,14 @@ public class ClientController {
         this.clientService = clientService;
     }
 
-    private Instructor getLoggedInstructor() {
-        return (Instructor) SecurityContextHolder.getContext()
+    private User getLoggedUser() {
+        return (User) SecurityContextHolder.getContext()
             .getAuthentication().getPrincipal();
     }
 
     @GetMapping
     public List<ClientDTO> getClienti() {
-        return clientService.showClients(getLoggedInstructor())
+        return clientService.showClients(getLoggedUser())
             .stream()
             .map(ClientDTO::from)
             .toList();
@@ -44,7 +44,7 @@ public class ClientController {
                 request.nome(),
                 request.cognome(),
                 request.telefono() != null ? Optional.of(request.telefono()) : null,
-                getLoggedInstructor()
+                getLoggedUser()
             );
         return ResponseEntity.status(201).body("Cliente aggiunto");
         } catch (DuplicateException e) {
@@ -56,7 +56,7 @@ public class ClientController {
 
     @DeleteMapping("/{code}")
     public ResponseEntity<String> removeCliente(@PathVariable Integer code) {
-        Client c = clientService.findByCode(code, getLoggedInstructor());
+        Client c = clientService.findByCode(code, getLoggedUser());
         if (c == null) {
             return ResponseEntity.status(404).body("Cliente non trovato");
         }
@@ -66,7 +66,7 @@ public class ClientController {
 
     @PutMapping("/{code}")
     public ResponseEntity<String> updateCliente (@PathVariable Integer code, @RequestBody ClienteRequest request) {
-        Client c = clientService.findByCode(code, getLoggedInstructor());
+        Client c = clientService.findByCode(code, getLoggedUser());
         if (c == null) {
             return ResponseEntity.status(404).body("Cliente non trovato");
         }

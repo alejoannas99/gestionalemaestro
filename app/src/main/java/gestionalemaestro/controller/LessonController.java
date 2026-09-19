@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import gestionalemaestro.dto.LessonDTO;
 import gestionalemaestro.model.Client;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.service.ClientService;
 import gestionalemaestro.service.DomainException;
@@ -28,14 +28,14 @@ public class LessonController {
         this.clientService = clientService;
     }
 
-    private Instructor getLoggedInstructor() {
-        return (Instructor) SecurityContextHolder.getContext()
+    private User getLoggedUser() {
+        return (User) SecurityContextHolder.getContext()
             .getAuthentication().getPrincipal();
     }
 
     @GetMapping
     public List<LessonDTO> getLezioni() {
-        return lessonService.showLessons(getLoggedInstructor())
+        return lessonService.showLessons(getLoggedUser())
             .stream()
             .map(LessonDTO::from)
             .toList();
@@ -48,7 +48,7 @@ public class LessonController {
             LocalTime start = LocalTime.parse(request.inizio());
             LocalTime finish = LocalTime.parse(request.fine());
             List<Client> clients = clientService.clientsdoingLesson(request.codiciClienti());
-            lessonService.newLesson(start, date, finish, clients, getLoggedInstructor());
+            lessonService.newLesson(start, date, finish, clients, getLoggedUser());
             return ResponseEntity.status(201).body("Lezione creata");
         } catch (DomainException e) {
             return ResponseEntity.status(400).body(e.getMessage());
@@ -59,7 +59,7 @@ public class LessonController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> removeLezione(@PathVariable int id) {
-        Lesson l = lessonService.findById(id, getLoggedInstructor());
+        Lesson l = lessonService.findById(id, getLoggedUser());
         if (l == null) {
             return ResponseEntity.status(404).body("Lezione non trovata");
         }
@@ -70,7 +70,7 @@ public class LessonController {
     @PutMapping("/{id}")
     public ResponseEntity<String> modifyLezione(@PathVariable int id, @RequestBody LezioneRequest request) {
         try {
-            Lesson l = lessonService.findById(id, getLoggedInstructor());
+            Lesson l = lessonService.findById(id, getLoggedUser());
             if (l == null) {
                 return ResponseEntity.status(404).body("Lezione non trovata");
             }

@@ -4,35 +4,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 import gestionalemaestro.security.JwtUtil;
 import gestionalemaestro.service.DomainException;
-import gestionalemaestro.service.InstructorService;
+import gestionalemaestro.service.UserService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final InstructorService instructorService;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthController(InstructorService instructorService, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
-        this.instructorService = instructorService;
+    public AuthController(UserService userService, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        return registerWithRole(request, User.Role.USER, "Registrazione effettuata");
+    }
+
+    @PostMapping("/register/instructor")
+    public ResponseEntity<String> registerInstructor(@RequestBody RegisterRequest request) {
+        return registerWithRole(request, User.Role.INSTRUCTOR, "Istruttore registrato");
+    }
+
+    private ResponseEntity<String> registerWithRole(RegisterRequest request, User.Role role, String okMessage) {
         try {
-            instructorService.register(
-                request.email(),
-                request.password(),
-                request.name(),
-                request.surname()
-            );
-            return ResponseEntity.status(201).body("Instructor registrato");
+            userService.register(request.email(), request.password(),
+                                 request.name(), request.surname(), role);
+            return ResponseEntity.status(201).body(okMessage);
         } catch (DomainException e) {
             return ResponseEntity.status(409).body(e.getMessage());
         }
@@ -41,11 +46,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
         try {
-            Instructor instructor = instructorService.findByEmail(request.email());
-            if (!passwordEncoder.matches(request.password(), instructor.getPassword())) {
+            User user = userService.findByEmail(request.email());
+            if (!passwordEncoder.matches(request.password(), user.getPassword())) {
                 return ResponseEntity.status(401).body("Password errata");
             }
-            String token = jwtUtil.generateToken(request.email());
+            String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
             return ResponseEntity.ok(token);
         } catch (DomainException e) {
             return ResponseEntity.status(404).body(e.getMessage());

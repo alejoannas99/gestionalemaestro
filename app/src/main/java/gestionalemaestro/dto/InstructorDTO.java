@@ -1,13 +1,13 @@
 package gestionalemaestro.dto;
 
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 
 public record InstructorDTO(
     Integer id,
     String name,
     String surname
 ) {
-    public static InstructorDTO from(Instructor i) {
+    public static InstructorDTO from(User i) {
         return new InstructorDTO(
             i.getId(),
             i.getName(),

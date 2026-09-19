@@ -30,8 +30,8 @@ public class User {
     public User(String email, String password, String name, String surname, Role role) {
         this.email    = email;
         this.password = password;
-        this.name     = name;
-        this.surname  = surname;
+        this.name     = NameUtil.normalize(name);
+        this.surname  = NameUtil.normalize(surname);
         this.role     = role;
     }
 

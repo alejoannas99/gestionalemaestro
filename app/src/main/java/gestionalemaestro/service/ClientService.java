@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.NameUtil;
 import gestionalemaestro.store.ClientRepository;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class ClientService {
     }
 
 
-    public void addClient(String name, String surname, Optional<String> numTel, Instructor instructor) throws IllegalArgumentException { 
+    public void addClient(String name, String surname, Optional<String> numTel, User instructor) throws IllegalArgumentException { 
         if(!(name == null || name.equals("")) && !(surname == null || surname.equals(""))){
         if(isNew(name, surname,instructor)){
         Client c = new Client(name,surname);
@@ -42,19 +43,19 @@ public class ClientService {
         clientRepository.remove(c);
     }
 
-    public List<Client> showClients(Instructor instructor) {
+    public List<Client> showClients(User instructor) {
         return clientRepository.findByInstructor(instructor);
     }
     
-    public boolean isNew(String name, String surname, Instructor instructor){
+    public boolean isNew(String name, String surname, User instructor){
         return clientRepository.findByInstructor(instructor).stream()
-            .filter(c -> c.getName().equals(name) && c.getSurname().equals(surname))
+            .filter(c -> c.getName().equals(NameUtil.normalize(name)) && c.getSurname().equals(NameUtil.normalize(surname)))
             .findFirst()
             .isEmpty();
 
     }
 
-    public Client findByCode(Integer code, Instructor instructor) {
+    public Client findByCode(Integer code, User instructor) {
         return showClients(instructor).stream()
             .filter(c -> c.getCode().equals(code))
             .findFirst()

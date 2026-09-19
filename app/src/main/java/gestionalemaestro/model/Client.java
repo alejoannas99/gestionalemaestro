@@ -19,21 +19,21 @@ public class Client {
 
     @ManyToOne
     @JoinColumn(name = "instructor_id")
-    private Instructor instructor;
+    private User instructor;
     
     
     
     public Client(String name, String surname) {
-        this.name = name;
-        this.surname = surname;
+        this.name = NameUtil.normalize(name);
+        this.surname = NameUtil.normalize(surname);
         this.lessonsAttended = 0;
     }
 
     public Client() {}
 
     public void update(String name, String surname){
-        this.name=name;
-        this.surname=surname;
+        this.name=NameUtil.normalize(name);
+        this.surname=NameUtil.normalize(surname);
     }
 
     public Integer getCode() {
@@ -62,11 +62,11 @@ public class Client {
         this.lessonsAttended++;
     }
 
-    public Instructor getInstructor() { 
+    public User getInstructor() { 
         return instructor; 
     }
     
-    public void setInstructor(Instructor instructor) { 
+    public void setInstructor(User instructor) { 
         this.instructor = instructor; 
     }
 

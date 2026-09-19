@@ -4,7 +4,8 @@ import java.util.List;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.Client;
+import gestionalemaestro.model.User;
 import gestionalemaestro.model.Lesson;
 
 @Repository
@@ -33,7 +34,11 @@ public class DbLessonRepository implements LessonRepository {
         return jpa.findById(id).orElse(null);
     }
 
-    public List<Lesson> findByInstructor(Instructor instructor) {
+    public List<Lesson> findByInstructor(User instructor) {
         return jpa.findByInstructor(instructor);
+    }
+
+    public List<Lesson> findByClients(List<Client> clients) {
+        return jpa.findDistinctByClientsIn(clients);
     }
 }

@@ -3,7 +3,7 @@ package gestionalemaestro.store;
 import java.util.List;
 
 import gestionalemaestro.model.Client;
-import gestionalemaestro.model.Instructor;
+import gestionalemaestro.model.User;
 
 public interface ClientRepository {
     
@@ -15,6 +15,8 @@ public interface ClientRepository {
 
     List<Client> findByCodes(List<Integer> codes);
 
-    List<Client> findByInstructor(Instructor instructor);
+    List<Client> findByInstructor(User instructor);
+
+    List<Client> findByFullName(String name, String surname);
 
 }

@@ -29,7 +29,7 @@ public class Lesson {
 
     @ManyToOne
     @JoinColumn(name = "instructor_id")
-    private Instructor instructor;
+    private User instructor;
 
     public Lesson(LocalDate date, LocalTime start, LocalTime finish, List<Client> clients) {
         this.date = date;
@@ -46,10 +46,10 @@ public class Lesson {
     public LocalTime getStart() { return start; }
     public LocalTime getFinish() { return finish; }
     public LocalDate getDate() { return date; }
-    public Instructor getInstructor() { return instructor; }
+    public User getInstructor() { return instructor; }
 
     // Setter
-    public void setInstructor(Instructor instructor) { this.instructor = instructor; }
+    public void setInstructor(User instructor) { this.instructor = instructor; }
     public void setDate(LocalDate date) { this.date = date; }
     public void setStart(LocalTime start) { this.start = start; }
     public void setFinish(LocalTime finish) { this.finish = finish; }
