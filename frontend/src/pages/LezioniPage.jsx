@@ -568,7 +568,7 @@ const s = {
     modalTitolo: { fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
     formLabel: { fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
-    input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none', color: '#1a1a2e' },
+    input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none', color: '#1a1a2e', backgroundColor: 'white' },
     select: { flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e', outline: 'none', boxSizing: 'border-box', minWidth: 0 },
     row: { display: 'flex', gap: '12px' },
     chipGrid: { display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' },

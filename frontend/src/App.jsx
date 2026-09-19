@@ -8,25 +8,42 @@ import RegisterPage from './pages/RegisterPage'; // *** AGGIUNTO ***
 import DashboardPage from './pages/DashboardPage';
 import ClientiPage from './pages/ClientiPage';
 import LezioniPage from './pages/LezioniPage';
+import MieLezioniPage from './pages/MieLezioniPage';
+
+// Il ruolo sta nel payload del JWT (la parte centrale, in base64url).
+// Serve solo a decidere quali pagine mostrare: i permessi veri li controlla il backend.
+// Se il token è assente, malformato o vecchio (senza ruolo) torna null = "non loggato".
+function getRole(token) {
+    try {
+        const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(payload)).role ?? null;
+    } catch {
+        return null;
+    }
+}
 
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+    const [role, setRole] = useState(() => getRole(localStorage.getItem('token') || ''));
+    const isLoggedIn = role !== null;
+    const isInstructor = role === 'INSTRUCTOR';
+    // Pagina di partenza dopo il login, in base al ruolo
+    const home = isInstructor ? '/dashboard' : '/me';
 
     const handleLogin = (token) => {
         localStorage.setItem('token', token);
-        setIsLoggedIn(true);
+        setRole(getRole(token));
     };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        setIsLoggedIn(false);
+        setRole(null);
     };
 
     return (
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={
-                    isLoggedIn ? <Navigate to="/dashboard" /> : <LoginPage onLogin={handleLogin} />
+                    isLoggedIn ? <Navigate to={home} /> : <LoginPage onLogin={handleLogin} />
                 } />
 
                 {/* *** AGGIUNTO ***
@@ -36,19 +53,26 @@ function App() {
                     RegisterPage non riceve onLogin perché dopo la registrazione
                     mandiamo al login — non facciamo login automatico. */}
                 <Route path="/register" element={
-                    isLoggedIn ? <Navigate to="/dashboard" /> : <RegisterPage />
+                    isLoggedIn ? <Navigate to={home} /> : <RegisterPage />
                 } />
 
+                {/* Pagine da istruttore: un USER che le apre a mano nell'URL
+                    viene rimandato alla sua area (o al login se non è loggato) */}
                 <Route path="/dashboard" element={
-                    isLoggedIn ? <DashboardPage onLogout={handleLogout} /> : <Navigate to="/login" />
+                    isInstructor ? <DashboardPage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
                 } />
                 <Route path="/clienti" element={
-                    isLoggedIn ? <ClientiPage onLogout={handleLogout} /> : <Navigate to="/login" />
+                    isInstructor ? <ClientiPage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
                 } />
                 <Route path="/lezioni" element={
-                    isLoggedIn ? <LezioniPage onLogout={handleLogout} /> : <Navigate to="/login" />
+                    isInstructor ? <LezioniPage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
                 } />
-                <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} />} />
+
+                {/* Area cliente (ruolo USER) */}
+                <Route path="/me" element={
+                    role === 'USER' ? <MieLezioniPage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
+                } />
+                <Route path="*" element={<Navigate to={isLoggedIn ? home : "/login"} />} />
             </Routes>
         </BrowserRouter>
     );

@@ -276,7 +276,7 @@ const s = {
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
     formLabel: { fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
     opzionale: { fontWeight: '400', textTransform: 'none', color: '#aaa', fontSize: '11px' },
-    input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none', color: '#1a1a2e' },
+    input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none', color: '#1a1a2e', backgroundColor: 'white' },
     errore: { color: '#e74c3c', fontSize: '13px' },
     formBtns: { display: 'flex', gap: '12px', marginTop: '4px' },
     submitBtn: { flex: 1, padding: '11px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },

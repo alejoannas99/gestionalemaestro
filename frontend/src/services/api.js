@@ -70,6 +70,10 @@ export const deleteLezione = (id) =>
         method: 'DELETE',
     });
 
+// AREA CLIENTE (ruolo USER)
+export const getMieLezioni = () =>
+    authFetch(`${BASE_URL}/me/lezioni`);
+
 // STATS
 export const getStatsClienti = () =>
     authFetch(`${BASE_URL}/stats/clienti`);
