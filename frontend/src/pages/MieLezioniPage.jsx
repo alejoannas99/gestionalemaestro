@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMieLezioni, getMioRiepilogo } from '../services/api';
+import { getMieLezioni, getMioRiepilogo, getIstruttori, getMieRichieste, inviaRichiesta } from '../services/api';
 
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
@@ -60,8 +60,8 @@ export default function MieLezioniPage({ onLogout }) {
 
             {!loading && !errore && lezioni.length === 0 && (
                 <p style={styles.vuoto}>
-                    Non ci sono lezioni a tuo nome. Il maestro ti collega tramite nome e cognome:
-                    controlla che coincidano con quelli con cui sei registrato da lui.
+                    Non vedi ancora nessuna lezione. Se hai già fatto lezione con un istruttore,
+                    chiedi il collegamento nella sezione qui sotto: lo approverà lui.
                 </p>
             )}
 
@@ -81,6 +81,74 @@ export default function MieLezioniPage({ onLogout }) {
                     </div>
                 </>
             )}
+
+            <h2 style={styles.sezione}>Collegamento</h2>
+            <CollegaIstruttore />
+        </div>
+    );
+}
+
+const STATO = { PENDING: 'In attesa', APPROVED: 'Approvata', REJECTED: 'Rifiutata' };
+
+// Il cliente dice "ho fatto lezione con questo istruttore" e l'istruttore decide se collegarlo
+function CollegaIstruttore() {
+    const [istruttori, setIstruttori] = useState([]);
+    const [richieste, setRichieste] = useState([]);
+    const [scelto, setScelto] = useState('');
+    const [messaggio, setMessaggio] = useState({ tipo: '', testo: '' });
+
+    const caricaRichieste = () =>
+        getMieRichieste()
+            .then(r => (r.ok ? r.json() : []))
+            .then(d => setRichieste(Array.isArray(d) ? d : []))
+            .catch(() => {});
+
+    useEffect(() => {
+        getIstruttori()
+            .then(r => (r.ok ? r.json() : []))
+            .then(d => setIstruttori(Array.isArray(d) ? d : []))
+            .catch(() => {});
+        caricaRichieste();
+    }, []);
+
+    const invia = async () => {
+        if (!scelto) return;
+        setMessaggio({ tipo: '', testo: '' });
+        try {
+            const res = await inviaRichiesta(Number(scelto));
+            if (res.ok) {
+                setMessaggio({ tipo: 'ok', testo: 'Richiesta inviata. Quando l’istruttore la approva vedrai le tue lezioni.' });
+                caricaRichieste();
+            } else {
+                setMessaggio({ tipo: 'errore', testo: await res.text() });
+            }
+        } catch {
+            setMessaggio({ tipo: 'errore', testo: 'Errore di connessione' });
+        }
+    };
+
+    return (
+        <div style={styles.riquadro}>
+            <div style={styles.riquadroTitolo}>Collegati a un istruttore</div>
+            <p style={styles.aiuto}>
+                Hai già fatto lezione con un istruttore? Sceglilo: riceverà la tua richiesta e, se ti riconosce, vedrai le tue lezioni.
+            </p>
+            <div style={styles.rigaForm}>
+                <select style={styles.select} value={scelto} onChange={e => setScelto(e.target.value)}>
+                    <option value="">Scegli l’istruttore…</option>
+                    {istruttori.map(i => <option key={i.id} value={i.id}>{i.name} {i.surname}</option>)}
+                </select>
+                <button style={styles.invia} onClick={invia} disabled={!scelto}>Invia richiesta</button>
+            </div>
+            {messaggio.testo && (
+                <p style={messaggio.tipo === 'ok' ? styles.ok : styles.errore}>{messaggio.testo}</p>
+            )}
+            {richieste.map(r => (
+                <div key={r.id} style={styles.rigaIstruttore}>
+                    <span>{r.instructorName} {r.instructorSurname}</span>
+                    <span>{STATO[r.status] || r.status}</span>
+                </div>
+            ))}
         </div>
     );
 }
@@ -124,6 +192,11 @@ const styles = {
     riquadroTitolo: { fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
     totale: { fontSize: '20px', fontWeight: 'bold', color: '#1a1a2e', margin: '4px 0 10px' },
     rigaIstruttore: { display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#444', padding: '6px 0', borderTop: '1px solid #eee' },
+    aiuto: { fontSize: '13px', color: '#666', margin: '6px 0 12px' },
+    rigaForm: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+    select: { flex: 1, minWidth: '180px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e' },
+    invia: { padding: '10px 16px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' },
+    ok: { color: 'green', fontSize: '13px', margin: '10px 0 0' },
     sezione: { fontSize: '14px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '20px 0 8px' },
     scheda: { backgroundColor: 'white', borderRadius: '12px', padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
     data: { fontSize: '15px', fontWeight: 'bold', color: '#1a1a2e' },

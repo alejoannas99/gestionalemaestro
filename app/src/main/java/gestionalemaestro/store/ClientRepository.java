@@ -19,4 +19,6 @@ public interface ClientRepository {
 
     List<Client> findByFullName(String name, String surname);
 
+    List<Client> findByAccount(User account);
+
 }

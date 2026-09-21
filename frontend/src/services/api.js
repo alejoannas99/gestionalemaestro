@@ -77,6 +77,29 @@ export const getMieLezioni = () =>
 export const getMioRiepilogo = () =>
     authFetch(`${BASE_URL}/me/riepilogo`);
 
+// collegamento cliente -> istruttore
+export const getIstruttori = () =>
+    authFetch(`${BASE_URL}/me/istruttori`);
+
+export const getMieRichieste = () =>
+    authFetch(`${BASE_URL}/me/richieste`);
+
+export const inviaRichiesta = (instructorId) =>
+    authFetch(`${BASE_URL}/me/richieste`, {
+        method: 'POST',
+        body: JSON.stringify({ instructorId }),
+    });
+
+// richieste ricevute dall'istruttore
+export const getRichieste = () =>
+    authFetch(`${BASE_URL}/richieste`);
+
+export const approvaRichiesta = (id) =>
+    authFetch(`${BASE_URL}/richieste/${id}/approva`, { method: 'POST' });
+
+export const rifiutaRichiesta = (id) =>
+    authFetch(`${BASE_URL}/richieste/${id}/rifiuta`, { method: 'POST' });
+
 // STATS
 export const getStatsClienti = () =>
     authFetch(`${BASE_URL}/stats/clienti`);

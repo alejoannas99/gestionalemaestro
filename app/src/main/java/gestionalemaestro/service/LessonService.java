@@ -104,13 +104,13 @@ public class LessonService {
        return l;
        }
 
-       // Un USER "è" i Client che hanno il suo stesso nome e cognome (omonimie: da gestire più avanti)
+       // Le lezioni di un USER sono quelle delle schede a lui collegate (il collegamento lo approva l'istruttore)
        public List<Lesson> showLessonsOf(User user) {
-              List<Client> matches = clientRepository.findByFullName(user.getName(), user.getSurname());
-              if (matches.isEmpty()) {
+              List<Client> linked = clientRepository.findByAccount(user);
+              if (linked.isEmpty()) {
                      return List.of();
               }
-              return lessonRepository.findByClients(matches);
+              return lessonRepository.findByClients(linked);
        }
 
        public record InstructorSummary(String instructorName, String instructorSurname, int lessons, double hours) {}

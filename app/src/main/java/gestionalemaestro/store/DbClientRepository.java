@@ -44,4 +44,8 @@ public class DbClientRepository implements ClientRepository {
     public List<Client> findByFullName(String name, String surname) {
         return jpa.findByNameIgnoreCaseAndSurnameIgnoreCase(name, surname);
     }
+
+    public List<Client> findByAccount(User account) {
+        return jpa.findByAccountsContains(account);
+    }
 }

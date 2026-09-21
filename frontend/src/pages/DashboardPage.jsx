@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getStatsClienti, getStatsLezioni, getTopCliente, getLezioni, getOreMese, getOreAnno} from '../services/api';
+import { getStatsClienti, getStatsLezioni, getTopCliente, getLezioni, getOreMese, getOreAnno, getRichieste } from '../services/api';
 
 const MESI_BREVI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 const GIORNI_SHORT = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
@@ -165,6 +165,15 @@ export default function DashboardPage({ onLogout }) {
     const [topCliente, setTopCliente] = useState(null);
     const [lezioni, setLezioni] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [richiesteInAttesa, setRichiesteInAttesa] = useState(0);
+
+    // Extra: se fallisce la dashboard funziona lo stesso, senza avviso
+    useEffect(() => {
+        getRichieste()
+            .then(r => (r.ok ? r.json() : []))
+            .then(data => setRichiesteInAttesa(Array.isArray(data) ? data.length : 0))
+            .catch(() => {});
+    }, []);
 
     useEffect(() => {
         Promise.all([
@@ -213,6 +222,13 @@ export default function DashboardPage({ onLogout }) {
             </div>
 
             <div style={{ ...s.content, padding: isMobile ? '16px' : '20px 24px' }}>
+                {/* AVVISO RICHIESTE: compare solo se ce ne sono in attesa */}
+                {richiesteInAttesa > 0 && (
+                    <div style={s.avviso} onClick={() => navigate('/richieste')}>
+                        🔔 {richiesteInAttesa === 1 ? 'Hai 1 richiesta di collegamento da approvare' : `Hai ${richiesteInAttesa} richieste di collegamento da approvare`} →
+                    </div>
+                )}
+
                 {/* STAT CARDS */}
                 <div style={{ ...s.statsRow, gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? '10px' : '16px' }}>
                     {statCards.map(({ icon, bg, label, value, onClick, highlight }) => (
@@ -295,6 +311,7 @@ const s = {
     navActive: { backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: '600' },
     logoutBtn: { padding: '6px 14px', backgroundColor: 'rgba(231,76,60,0.8)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
     // stat cards
+    avviso: { backgroundColor: '#fff7ed', border: '1px solid #fed7aa', color: '#9a3412', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', marginBottom: '16px' },
     statsRow: { display: 'grid' },
     statCard: { backgroundColor: 'white', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' },
     statCardOggi: { borderLeft: '3px solid #4361ee' },

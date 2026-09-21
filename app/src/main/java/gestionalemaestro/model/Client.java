@@ -1,7 +1,9 @@
 package gestionalemaestro.model;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 
 
@@ -20,9 +22,18 @@ public class Client {
     @ManyToOne
     @JoinColumn(name = "instructor_id")
     private User instructor;
-    
-    
-    
+
+    // Account (User) che possono vedere questa scheda: il collegamento avviene per approvazione dell'istruttore.
+    // EAGER perché l'insieme è piccolo e, con open-in-view disattivato, un caricamento lazy fuori transazione darebbe errore.
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "client_account",
+        joinColumns = @JoinColumn(name = "client_code"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> accounts = new HashSet<>();
+
+
     public Client(String name, String surname) {
         this.name = NameUtil.normalize(name);
         this.surname = NameUtil.normalize(surname);
@@ -62,7 +73,15 @@ public class Client {
         this.lessonsAttended++;
     }
 
-    public User getInstructor() { 
+    public Set<User> getAccounts() {
+        return accounts;
+    }
+
+    public void linkAccount(User user) {
+        this.accounts.add(user);
+    }
+
+    public User getInstructor() {
         return instructor; 
     }
     
