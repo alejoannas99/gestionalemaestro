@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getMieLezioni, getMioRiepilogo, getIstruttori, getMieRichieste, inviaRichiesta } from '../services/api';
 
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
@@ -22,6 +23,7 @@ function perData(a, b) {
 }
 
 export default function MieLezioniPage({ onLogout }) {
+    const navigate = useNavigate();
     const [lezioni, setLezioni] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errore, setErrore] = useState('');
@@ -50,7 +52,10 @@ export default function MieLezioniPage({ onLogout }) {
         <div style={styles.pagina}>
             <div style={styles.header}>
                 <h1 style={styles.titolo}>Le mie lezioni</h1>
-                <button style={styles.esci} onClick={onLogout}>Esci</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button style={styles.esci} onClick={() => navigate('/impostazioni')}>⚙️ Impostazioni</button>
+                    <button style={styles.esci} onClick={onLogout}>Esci</button>
+                </div>
             </div>
 
             {riepilogo && riepilogo.lessons > 0 && <RiquadroRiepilogo riepilogo={riepilogo} />}

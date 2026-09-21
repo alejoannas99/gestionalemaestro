@@ -1,6 +1,7 @@
 package gestionalemaestro.dto;
 
 import gestionalemaestro.model.Lesson;
+import gestionalemaestro.model.Location;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -11,16 +12,23 @@ public record MyLessonDTO(
     LocalTime start,
     LocalTime finish,
     String instructorName,
-    String instructorSurname
+    String instructorSurname,
+    String locationName,
+    Double latitude,
+    Double longitude
 ) {
     public static MyLessonDTO from(Lesson l) {
+        Location loc = l.getLocation();
         return new MyLessonDTO(
             l.getId(),
             l.getDate(),
             l.getStart(),
             l.getFinish(),
             l.getInstructor().getName(),
-            l.getInstructor().getSurname()
+            l.getInstructor().getSurname(),
+            loc != null ? loc.getName() : null,
+            loc != null ? loc.getLatitude() : null,
+            loc != null ? loc.getLongitude() : null
         );
     }
 }

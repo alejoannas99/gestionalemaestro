@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getLezioni, getClienti, addLezione, updateLezione, deleteLezione } from '../services/api';
+import { getLezioni, getClienti, addLezione, updateLezione, deleteLezione, getImpostazioni } from '../services/api';
+import SelettoreLocalita from '../components/SelettoreLocalita';
 
 // ── Hook responsività ────────────────────────────────────────────────────────
 function useIsMobile() {
@@ -161,6 +162,40 @@ const ag = {
 // ══════════════════════════════════════════════════════════════════════════════
 // COMPONENTE PRINCIPALE
 // ══════════════════════════════════════════════════════════════════════════════
+// La località di una lezione: quella scelta per questa lezione oppure, se non ce n'è, la predefinita
+function localitaDi(lezione) {
+    return lezione.locationName
+        ? { name: lezione.locationName, latitude: lezione.latitude, longitude: lezione.longitude }
+        : null;
+}
+
+function CampoLocalita({ localita, predefinita, onChange }) {
+    const [cambia, setCambia] = useState(false);
+    const mostrata = localita || predefinita;
+    return (
+        <div>
+            <label style={s.formLabel}>Località</label>
+            <div style={{ fontSize: '14px', color: '#1a1a2e', margin: '6px 0' }}>
+                {mostrata ? `📍 ${mostrata.name}` : 'Nessuna località: impostala in Impostazioni oppure cercala qui'}
+                {!localita && predefinita && <span style={{ color: '#888' }}> (predefinita)</span>}
+            </div>
+            {!cambia ? (
+                <button type="button" style={s.linkBtn} onClick={() => setCambia(true)}>Cambia località</button>
+            ) : (
+                <>
+                    <SelettoreLocalita onSeleziona={l => { onChange(l); setCambia(false); }} />
+                    {localita && (
+                        <button type="button" style={{ ...s.linkBtn, marginTop: '8px' }}
+                            onClick={() => { onChange(null); setCambia(false); }}>
+                            Usa quella predefinita
+                        </button>
+                    )}
+                </>
+            )}
+        </div>
+    );
+}
+
 export default function LezioniPage({ onLogout }) {
     const navigate = useNavigate();
     const isMobile = useIsMobile();
@@ -179,8 +214,21 @@ export default function LezioniPage({ onLogout }) {
 
     const [showForm, setShowForm] = useState(false);
     const [lezioneSelezionata, setLezioneSelezionata] = useState(null);
-    const [formData, setFormData] = useState({ data: '', inizio: '', fine: '', codici: [] });
+    const [formData, setFormData] = useState({ data: '', inizio: '', fine: '', codici: [], localita: null });
     const [errore, setErrore] = useState('');
+    // fixedLocation: se vero il campo località non si mostra; predefinita: la località delle impostazioni
+    const [impostazioni, setImpostazioni] = useState({ fixedLocation: false, predefinita: null });
+
+    // Extra: se fallisce, il form funziona lo stesso senza il campo località predefinita
+    useEffect(() => {
+        getImpostazioni()
+            .then(r => (r.ok ? r.json() : Promise.reject()))
+            .then(d => setImpostazioni({
+                fixedLocation: d.fixedLocation,
+                predefinita: d.locationName ? { name: d.locationName, latitude: d.latitude, longitude: d.longitude } : null,
+            }))
+            .catch(() => {});
+    }, []);
 
     useEffect(() => {
         Promise.all([
@@ -228,7 +276,7 @@ export default function LezioniPage({ onLogout }) {
         const y = e.clientY - rect.top;
         const ora = oraFromY(y);
         setLezioneSelezionata(null);
-        setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [] });
+        setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [], localita: null });
         setErrore('');
         setShowForm(true);
     };
@@ -241,11 +289,12 @@ export default function LezioniPage({ onLogout }) {
                 data: lezione.date,
                 inizio: lezione.start.substring(0, 5),
                 fine: lezione.finish.substring(0, 5),
-                codici: lezione.clients.map(c => c.code)
+                codici: lezione.clients.map(c => c.code),
+                localita: localitaDi(lezione)
             });
         } else {
             setLezioneSelezionata(null);
-            setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [] });
+            setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [], localita: null });
         }
         setErrore('');
         setShowForm(true);
@@ -258,7 +307,8 @@ export default function LezioniPage({ onLogout }) {
             data: lezione.date,
             inizio: lezione.start.substring(0, 5),
             fine: lezione.finish.substring(0, 5),
-            codici: lezione.clients.map(c => c.code)
+            codici: lezione.clients.map(c => c.code),
+            localita: localitaDi(lezione)
         });
         setErrore('');
         setShowForm(true);
@@ -279,8 +329,8 @@ export default function LezioniPage({ onLogout }) {
         if (formData.codici.length === 0) { setErrore('Seleziona almeno un cliente'); return; }
         try {
             const res = lezioneSelezionata
-                ? await updateLezione(lezioneSelezionata.id, formData.data, formData.inizio, formData.fine, formData.codici)
-                : await addLezione(formData.data, formData.inizio, formData.fine, formData.codici);
+                ? await updateLezione(lezioneSelezionata.id, formData.data, formData.inizio, formData.fine, formData.codici, formData.localita)
+                : await addLezione(formData.data, formData.inizio, formData.fine, formData.codici, formData.localita);
             if (res.ok) { setShowForm(false); ricarica(); }
             else setErrore(await res.text());
         } catch { setErrore('Errore di connessione'); }
@@ -328,6 +378,9 @@ export default function LezioniPage({ onLogout }) {
                     </button>
                     <button style={{ ...s.navBtn, ...s.navActive }}>
                         {isMobile ? '📅' : 'Lezioni'}
+                    </button>
+                    <button style={s.navBtn} onClick={() => navigate('/impostazioni')}>
+                        {isMobile ? '⚙️' : 'Impostazioni'}
                     </button>
                 </div>
                 <button style={s.logoutBtn} onClick={onLogout}>
@@ -504,6 +557,14 @@ export default function LezioniPage({ onLogout }) {
                                 ))}
                             </div>
 
+                            {!impostazioni.fixedLocation && (
+                                <CampoLocalita
+                                    localita={formData.localita}
+                                    predefinita={impostazioni.predefinita}
+                                    onChange={l => setFormData(prev => ({ ...prev, localita: l }))}
+                                />
+                            )}
+
                             {errore && <p style={s.errore}>{errore}</p>}
 
                             <div style={s.row}>
@@ -565,6 +626,7 @@ const s = {
     overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
     modal: { backgroundColor: 'white', borderRadius: '16px', padding: '28px', width: '400px', maxWidth: '90vw', boxSizing: 'border-box' , boxShadow: '0 16px 48px rgba(0,0,0,0.2)'},
     handle: { width: '40px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px', margin: '0 auto 20px' },
+    linkBtn: { padding: 0, background: 'none', border: 'none', color: '#4361ee', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
     modalTitolo: { fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
     formLabel: { fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },

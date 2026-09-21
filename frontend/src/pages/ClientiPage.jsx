@@ -104,6 +104,9 @@ export default function ClientiPage({ onLogout }) {
                     <button style={s.navBtn} onClick={() => navigate('/lezioni')}>
                         {isMobile ? '📅' : 'Lezioni'}
                     </button>
+                    <button style={s.navBtn} onClick={() => navigate('/impostazioni')}>
+                        {isMobile ? '⚙️' : 'Impostazioni'}
+                    </button>
                 </div>
                 <button style={s.logoutBtn} onClick={onLogout}>
                     {isMobile ? '↩' : 'Esci'}

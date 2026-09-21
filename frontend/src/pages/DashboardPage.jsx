@@ -211,7 +211,7 @@ export default function DashboardPage({ onLogout }) {
             <div style={s.header}>
                 <span style={s.brand}>GestionaleMaestro</span>
                 <div style={s.nav}>
-                    {[['Dashboard','🏠','/dashboard',true],['Clienti','👥','/clienti'],['Lezioni','📅','/lezioni']].map(([label, icon, path, active]) => (
+                    {[['Dashboard','🏠','/dashboard',true],['Clienti','👥','/clienti'],['Lezioni','📅','/lezioni'],['Impostazioni','⚙️','/impostazioni']].map(([label, icon, path, active]) => (
                         <button key={path} onClick={() => navigate(path)}
                             style={{ ...s.navBtn, ...(active ? s.navActive : {}) }}>
                             {isMobile ? icon : label}

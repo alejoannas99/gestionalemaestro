@@ -31,6 +31,10 @@ public class Lesson {
     @JoinColumn(name = "instructor_id")
     private User instructor;
 
+    // Dove si svolge la lezione (per il meteo). null = non indicata, ad esempio per le lezioni vecchie
+    @Embedded
+    private Location location;
+
     public Lesson(LocalDate date, LocalTime start, LocalTime finish, List<Client> clients) {
         this.date = date;
         this.start = start;
@@ -47,8 +51,10 @@ public class Lesson {
     public LocalTime getFinish() { return finish; }
     public LocalDate getDate() { return date; }
     public User getInstructor() { return instructor; }
+    public Location getLocation() { return location; }
 
     // Setter
+    public void setLocation(Location location) { this.location = location; }
     public void setInstructor(User instructor) { this.instructor = instructor; }
     public void setDate(LocalDate date) { this.date = date; }
     public void setStart(LocalTime start) { this.start = start; }

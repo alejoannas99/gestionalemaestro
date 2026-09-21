@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import gestionalemaestro.model.Client;
 import gestionalemaestro.model.Lesson;
+import gestionalemaestro.model.Location;
 import gestionalemaestro.store.LessonRepository;
 import gestionalemaestro.store.ClientRepository;
 import gestionalemaestro.model.User;
@@ -27,7 +28,7 @@ public class LessonService {
               this.clientRepository = clientRepository;
        }
 
-       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients, User instructor) throws IllegalArgumentException {
+       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients, User instructor, Location location) throws IllegalArgumentException {
        boolean hasOverlap = lessonRepository.findByInstructor(instructor).stream()
                                             .filter(l -> l.getDate().equals(date))
                                             .anyMatch(l -> l.getClients().stream()
@@ -50,6 +51,7 @@ public class LessonService {
               }
               Lesson l = new Lesson(date, start, finish, clients);
               l.setInstructor(instructor);
+              l.setLocation(location);
               lessonRepository.save(l);
               for(Client c : clients){
                      c.attendLesson();
@@ -72,7 +74,7 @@ public class LessonService {
        }
        }    
 
-       public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients) throws IllegalArgumentException {
+       public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients, Location newLocation) throws IllegalArgumentException {
        if (newclients.isEmpty()) {
               throw new DomainException("At least one client is required");
        }
@@ -93,6 +95,7 @@ public class LessonService {
        l.setStart(newstart);
        l.setFinish(newfinish);
        l.setClients(newclients);
+       l.setLocation(newLocation);
        lessonRepository.save(l);
        }
 

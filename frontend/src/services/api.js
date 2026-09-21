@@ -53,16 +53,23 @@ export const deleteCliente = (code) =>
 export const getLezioni = () =>
     authFetch(`${BASE_URL}/lezioni`);
 
-export const addLezione = (data, inizio, fine, codiciClienti) =>
+// localita è facoltativa: { name, latitude, longitude }. Se manca vale quella predefinita dell'istruttore.
+const campiLocalita = (localita) => ({
+    locationName: localita?.name ?? null,
+    latitude: localita?.latitude ?? null,
+    longitude: localita?.longitude ?? null,
+});
+
+export const addLezione = (data, inizio, fine, codiciClienti, localita) =>
     authFetch(`${BASE_URL}/lezioni`, {
         method: 'POST',
-        body: JSON.stringify({ data, inizio, fine, codiciClienti }),
+        body: JSON.stringify({ data, inizio, fine, codiciClienti, ...campiLocalita(localita) }),
     });
 
-export const updateLezione = (id, data, inizio, fine, codiciClienti) =>
+export const updateLezione = (id, data, inizio, fine, codiciClienti, localita) =>
     authFetch(`${BASE_URL}/lezioni/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ data, inizio, fine, codiciClienti }),
+        body: JSON.stringify({ data, inizio, fine, codiciClienti, ...campiLocalita(localita) }),
     });
 
 export const deleteLezione = (id) =>
@@ -99,6 +106,16 @@ export const approvaRichiesta = (id) =>
 
 export const rifiutaRichiesta = (id) =>
     authFetch(`${BASE_URL}/richieste/${id}/rifiuta`, { method: 'POST' });
+
+// IMPOSTAZIONI
+export const getImpostazioni = () =>
+    authFetch(`${BASE_URL}/impostazioni`);
+
+export const salvaImpostazioni = (impostazioni) =>
+    authFetch(`${BASE_URL}/impostazioni`, {
+        method: 'PUT',
+        body: JSON.stringify(impostazioni),
+    });
 
 // STATS
 export const getStatsClienti = () =>
