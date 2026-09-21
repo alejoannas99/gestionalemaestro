@@ -68,16 +68,16 @@ function LoginPage({ onLogin }) {
 }
 
 const styles = {
-    container: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f0f2f5' },
-    card: { backgroundColor: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', width: '360px' },
-    titolo: { fontSize: '24px', color: '#1a1a2e', marginBottom: '8px', textAlign: 'center' },
-    sottotitolo: { fontSize: '14px', color: '#666', marginBottom: '24px', textAlign: 'center', fontWeight: 'normal' },
+    container: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: 'var(--bg)' },
+    card: { backgroundColor: 'var(--surface)', padding: '40px', borderRadius: '12px', boxShadow: 'var(--shadow)', width: '360px' },
+    titolo: { fontSize: '24px', color: 'var(--text)', marginBottom: '8px', textAlign: 'center' },
+    sottotitolo: { fontSize: '14px', color: 'var(--muted)', marginBottom: '24px', textAlign: 'center', fontWeight: 'normal' },
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
-    input: { padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none' },
-    button: { padding: '12px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', marginTop: '8px' },
-    errore: { color: 'red', fontSize: '13px', textAlign: 'center' },
-    linkTesto: { textAlign: 'center', marginTop: '16px', fontSize: '13px', color: '#666' },
-    link: { color: '#1a1a2e', fontWeight: 'bold', textDecoration: 'none' },
+    input: { padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', outline: 'none' },
+    button: { padding: '12px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', marginTop: '8px' },
+    errore: { color: 'var(--danger)', fontSize: '13px', textAlign: 'center' },
+    linkTesto: { textAlign: 'center', marginTop: '16px', fontSize: '13px', color: 'var(--muted)' },
+    link: { color: 'var(--text)', fontWeight: 'bold', textDecoration: 'none' },
 };
 
 export default LoginPage;

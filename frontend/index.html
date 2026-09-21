@@ -1,10 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>GestionaleMaestro</title>
+    <!-- Applica il tema salvato prima che la pagina venga disegnata, per evitare il lampo di bianco in modalità scura.
+         Stessa logica di src/theme.js: 'scuro' scuro, 'chiaro' chiaro, altrimenti segue il sistema. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('tema');
+          var scuro = t === 'scuro' || (t !== 'chiaro' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = scuro ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

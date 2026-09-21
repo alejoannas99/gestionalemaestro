@@ -1,27 +1,46 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getMieLezioni, getMioRiepilogo, getIstruttori, getMieRichieste, inviaRichiesta } from '../services/api';
 import { IconaMeteo, MeteoOggi, DettaglioMeteo } from '../components/Meteo';
+import ClientShell from '../components/ClientShell';
 
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+const PASSATE_VISIBILI = 5;
 
+const due = (n) => String(n).padStart(2, '0');
 function oggiISO() {
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return `${d.getFullYear()}-${due(d.getMonth() + 1)}-${due(d.getDate())}`;
+}
+// Adesso come "YYYY-MM-DDTHH:mm:ss" nello stesso formato di data + ora fine della lezione (si confrontano come stringhe)
+function adessoISO() {
+    const d = new Date();
+    return `${oggiISO()}${due(d.getHours())}:${due(d.getMinutes())}:00`;
 }
 function fmtOra(t) { return t ? t.substring(0, 5) : ''; }
 // 6.5 -> "6,5 h", 12 -> "12 h"
 function fmtOre(n) { return `${(Math.round(n * 10) / 10).toString().replace('.', ',')} h`; }
-function fmtData(iso) {
-    // "T00:00" fa interpretare la data come locale (senza, JS la leggerebbe in UTC e potrebbe slittare di giorno)
-    const d = new Date(`${iso}T00:00`);
-    return `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]} ${d.getFullYear()}`;
+// "T00:00" fa interpretare la data come locale (senza, JS la leggerebbe in UTC e potrebbe slittare di giorno)
+function dataLocale(iso) { return new Date(`${iso}T00:00`); }
+function fmtDataLunga(iso) {
+    const d = dataLocale(iso);
+    return `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`;
 }
-// Le date arrivano come "YYYY-MM-DD" e le ore come "HH:mm:ss": si confrontano bene anche come stringhe
-function perData(a, b) {
-    return (a.date + a.start).localeCompare(b.date + b.start);
+function giorniA(iso) {
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+    return Math.round((dataLocale(iso) - oggi) / 86400000);
 }
+function quando(iso) {
+    const n = giorniA(iso);
+    if (n === 0) return 'Oggi';
+    if (n === 1) return 'Domani';
+    return n > 1 ? `Tra ${n} giorni` : '';
+}
+// La lezione finisce dopo (data + ora fine) di adesso? Le date sono "YYYY-MM-DD", le ore "HH:mm:ss".
+function inCorso(l, adesso) { return (l.date + 'T' + l.finish) >= adesso; }
+function perData(a, b) { return (a.date + a.start).localeCompare(b.date + b.start); }
 // La località di una lezione, o null se non è stata indicata
 function localitaDi(lezione) {
     return lezione.latitude != null
@@ -30,12 +49,12 @@ function localitaDi(lezione) {
 }
 
 export default function MieLezioniPage({ onLogout }) {
-    const navigate = useNavigate();
     const [lezioni, setLezioni] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errore, setErrore] = useState('');
     const [riepilogo, setRiepilogo] = useState(null);
     const [dettaglioMeteo, setDettaglioMeteo] = useState(null); // { localita, data } oppure null
+    const [tuttePassate, setTuttePassate] = useState(false);
 
     // Il riepilogo è un extra: se fallisce la pagina funziona lo stesso, senza il riquadro
     useEffect(() => {
@@ -53,65 +72,157 @@ export default function MieLezioniPage({ onLogout }) {
     }, []);
 
     const oggi = oggiISO();
-    const prossime = lezioni.filter(l => l.date >= oggi).sort(perData);
-    const passate = lezioni.filter(l => l.date < oggi).sort(perData).reverse();
+    const adesso = adessoISO();
+    const prossime = lezioni.filter(l => inCorso(l, adesso)).sort(perData);
+    const passate = lezioni.filter(l => !inCorso(l, adesso)).sort(perData).reverse();
+    const prossima = prossime[0] ?? null;
+    const altre = prossime.slice(1);
+    const passateMostrate = tuttePassate ? passate : passate.slice(0, PASSATE_VISIBILI);
 
     // Meteo di oggi: dove si svolge la lezione di oggi o, altrimenti, la prossima che ha una località
     const conLuogo = prossime.filter(l => localitaDi(l));
     const lezioneMeteo = conLuogo.find(l => l.date === oggi) || conLuogo[0];
     const localitaOggi = lezioneMeteo ? localitaDi(lezioneMeteo) : null;
 
+    const senzaLezioni = !loading && !errore && lezioni.length === 0;
+    const apriMeteo = (localita, data) => setDettaglioMeteo({ localita, data });
+
     return (
-        <div style={styles.pagina}>
-            <div style={styles.header}>
-                <h1 style={styles.titolo}>Le mie lezioni</h1>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button style={styles.esci} onClick={() => navigate('/impostazioni')}>⚙️ Impostazioni</button>
-                    <button style={styles.esci} onClick={onLogout}>Esci</button>
+        <ClientShell onLogout={onLogout}>
+            <h1 style={s.titolo}>Le mie lezioni</h1>
+
+            {loading && <p style={s.testo}>Caricamento...</p>}
+            {errore && <p style={s.errore}>{errore}</p>}
+
+            {senzaLezioni && (
+                <div style={s.vuoto}>
+                    <div style={s.emoji}>🎿</div>
+                    <div style={s.vuotoTitolo}>Non vedi ancora nessuna lezione</div>
+                    <p style={s.vuotoTesto}>
+                        Se hai già fatto lezione con un istruttore, chiedi il collegamento qui sotto: lo approverà lui
+                        e vedrai le tue lezioni.
+                    </p>
                 </div>
-            </div>
-
-            {localitaOggi && (
-                <MeteoOggi localita={localitaOggi} onDettaglio={data => setDettaglioMeteo({ localita: localitaOggi, data })} />
             )}
+            {senzaLezioni && <CollegaIstruttore />}
 
-            {riepilogo && riepilogo.lessons > 0 && <RiquadroRiepilogo riepilogo={riepilogo} />}
-
-            {loading && <p style={styles.testo}>Caricamento...</p>}
-            {errore && <p style={styles.errore}>{errore}</p>}
-
-            {!loading && !errore && lezioni.length === 0 && (
-                <p style={styles.vuoto}>
-                    Non vedi ancora nessuna lezione. Se hai già fatto lezione con un istruttore,
-                    chiedi il collegamento nella sezione qui sotto: lo approverà lui.
-                </p>
-            )}
-
-            {prossime.length > 0 && (
+            {!loading && !senzaLezioni && !errore && (
                 <>
-                    <h2 style={styles.sezione}>Prossime</h2>
-                    <div style={styles.griglia}>
-                        {prossime.map(l => <Scheda key={l.id} lezione={l} onMeteo={setDettaglioMeteo} />)}
-                    </div>
+                    {prossima
+                        ? <Prossima lezione={prossima} onMeteo={apriMeteo} />
+                        : <div style={s.vuotoPiccolo}>Nessuna lezione in programma. 🌤️</div>}
+
+                    {localitaOggi && (
+                        <MeteoOggi localita={localitaOggi} onDettaglio={data => apriMeteo(localitaOggi, data)} />
+                    )}
+
+                    {riepilogo && riepilogo.lessons > 0 && <Riepilogo riepilogo={riepilogo} />}
+
+                    {altre.length > 0 && (
+                        <>
+                            <h2 style={s.sezione}>Prossime lezioni</h2>
+                            <div style={s.lista}>
+                                {altre.map(l => <Riga key={l.id} lezione={l} onMeteo={apriMeteo} />)}
+                            </div>
+                        </>
+                    )}
+
+                    {passate.length > 0 && (
+                        <>
+                            <h2 style={s.sezione}>Lezioni passate</h2>
+                            <div style={s.lista}>
+                                {passateMostrate.map(l => <Riga key={l.id} lezione={l} passata />)}
+                            </div>
+                            {passate.length > PASSATE_VISIBILI && (
+                                <button type="button" style={s.mostraAltre} onClick={() => setTuttePassate(v => !v)}>
+                                    {tuttePassate ? 'Mostra meno' : `Mostra tutte (${passate.length})`}
+                                </button>
+                            )}
+                        </>
+                    )}
+
+                    <h2 style={s.sezione}>Collegamento</h2>
+                    <CollegaIstruttore />
                 </>
             )}
-            {passate.length > 0 && (
-                <>
-                    <h2 style={styles.sezione}>Passate</h2>
-                    <div style={styles.griglia}>
-                        {passate.map(l => <Scheda key={l.id} lezione={l} passata />)}
-                    </div>
-                </>
-            )}
-
-            <h2 style={styles.sezione}>Collegamento</h2>
-            <CollegaIstruttore />
 
             {dettaglioMeteo && (
                 <DettaglioMeteo localita={dettaglioMeteo.localita} data={dettaglioMeteo.data}
                     onChiudi={() => setDettaglioMeteo(null)} />
             )}
+        </ClientShell>
+    );
+}
+
+// La prossima lezione, in grande
+function Prossima({ lezione, onMeteo }) {
+    const localita = localitaDi(lezione);
+    return (
+        <div style={s.hero}>
+            <div style={s.heroEtichetta}>Prossima lezione · {quando(lezione.date)}</div>
+            <div style={s.heroData}>{fmtDataLunga(lezione.date)}</div>
+            <div style={s.heroOra}>{fmtOra(lezione.start)} – {fmtOra(lezione.finish)}</div>
+            <div style={s.heroRiga}>con {lezione.instructorName} {lezione.instructorSurname}</div>
+            {localita && <div style={s.heroRiga}>📍 {localita.name}</div>}
+            {localita && (
+                <div style={{ marginTop: '14px' }}>
+                    <IconaMeteo localita={localita} data={lezione.date} onClick={() => onMeteo(localita, lezione.date)} />
+                </div>
+            )}
         </div>
+    );
+}
+
+// Una lezione nell'elenco: il giorno a sinistra, i dettagli a destra
+function Riga({ lezione, passata, onMeteo }) {
+    const d = dataLocale(lezione.date);
+    const localita = localitaDi(lezione);
+    return (
+        <div style={{ ...s.riga, opacity: passata ? 0.65 : 1 }}>
+            <div style={s.giorno}>
+                <div style={s.giornoNum}>{d.getDate()}</div>
+                <div style={s.giornoMese}>{MESI_BREVI[d.getMonth()]}</div>
+            </div>
+            <div style={s.rigaCorpo}>
+                <div style={s.rigaTitolo}>{GIORNI[d.getDay()]} · {fmtOra(lezione.start)}–{fmtOra(lezione.finish)}</div>
+                <div style={s.rigaDettaglio}>con {lezione.instructorName} {lezione.instructorSurname}</div>
+                {localita && <div style={s.rigaDettaglio}>📍 {localita.name}</div>}
+            </div>
+            {onMeteo && localita && (
+                <IconaMeteo localita={localita} data={lezione.date} onClick={() => onMeteo(localita, lezione.date)} />
+            )}
+        </div>
+    );
+}
+
+// Lezioni e ore fatte: numeri grandi e dettaglio per istruttore
+function Riepilogo({ riepilogo }) {
+    return (
+        <>
+            <h2 style={s.sezione}>Il tuo percorso</h2>
+            <div style={s.numeri}>
+                <div style={s.numero}>
+                    <div style={s.numeroValore}>{riepilogo.lessons}</div>
+                    <div style={s.numeroEtichetta}>{riepilogo.lessons === 1 ? 'lezione fatta' : 'lezioni fatte'}</div>
+                </div>
+                <div style={s.numero}>
+                    <div style={s.numeroValore}>{fmtOre(riepilogo.hours)}</div>
+                    <div style={s.numeroEtichetta}>sugli sci</div>
+                </div>
+                <div style={s.numero}>
+                    <div style={s.numeroValore}>{riepilogo.perInstructor.length}</div>
+                    <div style={s.numeroEtichetta}>{riepilogo.perInstructor.length === 1 ? 'istruttore' : 'istruttori'}</div>
+                </div>
+            </div>
+            <div style={s.scheda}>
+                {riepilogo.perInstructor.map(i => (
+                    <div key={`${i.instructorName}-${i.instructorSurname}`} style={s.rigaIstruttore}>
+                        <span>{i.instructorName} {i.instructorSurname}</span>
+                        <span style={s.rigaIstruttoreValori}>{i.lessons} {i.lessons === 1 ? 'lezione' : 'lezioni'} · {fmtOre(i.hours)}</span>
+                    </div>
+                ))}
+            </div>
+        </>
     );
 }
 
@@ -155,90 +266,78 @@ function CollegaIstruttore() {
     };
 
     return (
-        <div style={styles.riquadro}>
-            <div style={styles.riquadroTitolo}>Collegati a un istruttore</div>
-            <p style={styles.aiuto}>
+        <div style={s.scheda}>
+            <div style={s.schedaTitolo}>Collegati a un istruttore</div>
+            <p style={s.aiuto}>
                 Hai già fatto lezione con un istruttore? Sceglilo: riceverà la tua richiesta e, se ti riconosce, vedrai le tue lezioni.
             </p>
-            <div style={styles.rigaForm}>
-                <select style={styles.select} value={scelto} onChange={e => setScelto(e.target.value)}>
+            <div style={s.rigaForm}>
+                <select style={s.select} value={scelto} onChange={e => setScelto(e.target.value)}>
                     <option value="">Scegli l’istruttore…</option>
                     {istruttori.map(i => <option key={i.id} value={i.id}>{i.name} {i.surname}</option>)}
                 </select>
-                <button style={styles.invia} onClick={invia} disabled={!scelto}>Invia richiesta</button>
+                <button type="button" style={{ ...s.invia, opacity: scelto ? 1 : 0.5 }} onClick={invia} disabled={!scelto}>
+                    Invia richiesta
+                </button>
             </div>
             {messaggio.testo && (
-                <p style={messaggio.tipo === 'ok' ? styles.ok : styles.errore}>{messaggio.testo}</p>
+                <p style={messaggio.tipo === 'ok' ? s.ok : s.errore}>{messaggio.testo}</p>
             )}
             {richieste.map(r => (
-                <div key={r.id} style={styles.rigaIstruttore}>
+                <div key={r.id} style={s.rigaIstruttore}>
                     <span>{r.instructorName} {r.instructorSurname}</span>
-                    <span>{STATO[r.status] || r.status}</span>
+                    <span style={s.rigaIstruttoreValori}>{STATO[r.status] || r.status}</span>
                 </div>
             ))}
         </div>
     );
 }
 
-function RiquadroRiepilogo({ riepilogo }) {
-    return (
-        <div style={styles.riquadro}>
-            <div style={styles.riquadroTitolo}>Lezioni fatte</div>
-            <div style={styles.totale}>
-                {riepilogo.lessons} {riepilogo.lessons === 1 ? 'lezione' : 'lezioni'} · {fmtOre(riepilogo.hours)}
-            </div>
-            {riepilogo.perInstructor.map(i => (
-                <div key={`${i.instructorName}-${i.instructorSurname}`} style={styles.rigaIstruttore}>
-                    <span>{i.instructorName} {i.instructorSurname}</span>
-                    <span>{i.lessons} · {fmtOre(i.hours)}</span>
-                </div>
-            ))}
-        </div>
-    );
-}
+const s = {
+    titolo: { fontSize: '26px', fontWeight: '700', margin: '0 0 16px' },
+    sezione: { fontSize: '13px', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', margin: '28px 0 10px' },
+    testo: { color: 'var(--muted)', fontSize: '14px' },
+    errore: { color: 'var(--danger)', fontSize: '13px', margin: '10px 0 0' },
+    ok: { color: 'var(--success)', fontSize: '13px', margin: '10px 0 0' },
 
-// onMeteo: se presente (lezioni future) la scheda mostra l'icona del meteo che apre il dettaglio
-function Scheda({ lezione, passata, onMeteo }) {
-    const localita = localitaDi(lezione);
-    return (
-        <div style={{ ...styles.scheda, opacity: passata ? 0.6 : 1 }}>
-            <div style={styles.rigaTitolo}>
-                <div style={styles.data}>{fmtData(lezione.date)}</div>
-                {onMeteo && localita && (
-                    <IconaMeteo localita={localita} data={lezione.date}
-                        onClick={() => onMeteo({ localita, data: lezione.date })} />
-                )}
-            </div>
-            <div style={styles.dettaglio}>
-                {fmtOra(lezione.start)} – {fmtOra(lezione.finish)} · con {lezione.instructorName} {lezione.instructorSurname}
-            </div>
-            {localita && <div style={styles.dettaglio}>📍 {localita.name}</div>}
-        </div>
-    );
-}
+    // prossima lezione
+    hero: { background: 'linear-gradient(135deg, #4361ee, #6d83ff)', color: 'white', borderRadius: '20px', padding: '22px 20px', marginBottom: '14px', boxShadow: 'var(--shadow-lg)' },
+    heroEtichetta: { fontSize: '13px', opacity: 0.85, marginBottom: '6px' },
+    heroData: { fontSize: '24px', fontWeight: '700', lineHeight: 1.2 },
+    heroOra: { fontSize: '30px', fontWeight: '700', margin: '4px 0 10px' },
+    heroRiga: { fontSize: '15px', opacity: 0.95, marginTop: '3px' },
+    vuotoPiccolo: { backgroundColor: 'var(--surface)', color: 'var(--muted)', borderRadius: '16px', padding: '20px', textAlign: 'center', marginBottom: '14px', boxShadow: 'var(--shadow)' },
 
-const styles = {
-    pagina: { width: '100%', padding: '16px 24px', minHeight: '100vh', backgroundColor: '#f0f2f5', boxSizing: 'border-box', textAlign: 'left' },
-    // Tante colonne quante ne entrano da almeno 280px: 1 sul telefono, 2-3 sul computer
-    griglia: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
-    titolo: { fontSize: '22px', color: '#1a1a2e', margin: 0 },
-    esci: { padding: '8px 14px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' },
-    riquadro: { backgroundColor: 'white', borderRadius: '12px', padding: '16px', marginBottom: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-    riquadroTitolo: { fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
-    totale: { fontSize: '20px', fontWeight: 'bold', color: '#1a1a2e', margin: '4px 0 10px' },
-    rigaIstruttore: { display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#444', padding: '6px 0', borderTop: '1px solid #eee' },
-    aiuto: { fontSize: '13px', color: '#666', margin: '6px 0 12px' },
-    rigaForm: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
-    select: { flex: 1, minWidth: '180px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e' },
-    invia: { padding: '10px 16px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' },
-    ok: { color: 'green', fontSize: '13px', margin: '10px 0 0' },
-    sezione: { fontSize: '14px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '20px 0 8px' },
-    scheda: { backgroundColor: 'white', borderRadius: '12px', padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-    rigaTitolo: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' },
-    data: { fontSize: '15px', fontWeight: 'bold', color: '#1a1a2e' },
-    dettaglio: { fontSize: '13px', color: '#666', marginTop: '4px' },
-    testo: { color: '#666', fontSize: '14px' },
-    vuoto: { color: '#666', fontSize: '14px', backgroundColor: 'white', padding: '16px', borderRadius: '12px' },
-    errore: { color: 'red', fontSize: '13px' },
+    // nessuna lezione
+    vuoto: { backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '32px 22px', textAlign: 'center', marginBottom: '14px', boxShadow: 'var(--shadow)' },
+    emoji: { fontSize: '44px', marginBottom: '10px' },
+    vuotoTitolo: { fontSize: '17px', fontWeight: '600', color: 'var(--text)', marginBottom: '6px' },
+    vuotoTesto: { fontSize: '14px', color: 'var(--muted)', lineHeight: 1.5 },
+
+    // elenco lezioni
+    lista: { display: 'flex', flexDirection: 'column', gap: '10px' },
+    riga: { display: 'flex', alignItems: 'center', gap: '14px', backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '12px 14px', boxShadow: 'var(--shadow)' },
+    giorno: { flexShrink: 0, width: '52px', textAlign: 'center', backgroundColor: 'var(--accent-soft)', borderRadius: '12px', padding: '8px 0' },
+    giornoNum: { fontSize: '20px', fontWeight: '700', color: 'var(--accent)', lineHeight: 1 },
+    giornoMese: { fontSize: '11px', fontWeight: '600', color: 'var(--accent)', textTransform: 'uppercase', marginTop: '3px' },
+    rigaCorpo: { flex: 1, minWidth: 0 },
+    rigaTitolo: { fontSize: '15px', fontWeight: '600', color: 'var(--text)' },
+    rigaDettaglio: { fontSize: '13px', color: 'var(--muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    mostraAltre: { display: 'block', margin: '12px auto 0', padding: '8px 16px', backgroundColor: 'transparent', color: 'var(--accent)', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+
+    // riepilogo
+    numeri: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '10px' },
+    numero: { backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '16px 8px', textAlign: 'center', boxShadow: 'var(--shadow)' },
+    numeroValore: { fontSize: '26px', fontWeight: '700', color: 'var(--text)', lineHeight: 1.1 },
+    numeroEtichetta: { fontSize: '12px', color: 'var(--muted)', marginTop: '4px' },
+
+    // scheda generica e collegamento
+    scheda: { backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '6px 16px', boxShadow: 'var(--shadow)' },
+    schedaTitolo: { fontSize: '16px', fontWeight: '600', color: 'var(--text)', padding: '12px 0 0' },
+    aiuto: { fontSize: '13px', color: 'var(--muted)', margin: '6px 0 12px', lineHeight: 1.5 },
+    rigaForm: { display: 'flex', gap: '10px', flexWrap: 'wrap', paddingBottom: '12px' },
+    select: { flex: 1, minWidth: '180px', padding: '11px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '15px', backgroundColor: 'var(--surface)', color: 'var(--text)' },
+    invia: { padding: '11px 18px', backgroundColor: 'var(--brand)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' },
+    rigaIstruttore: { display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '14px', color: 'var(--text)', padding: '11px 0', borderTop: '1px solid var(--border)' },
+    rigaIstruttoreValori: { color: 'var(--muted)', whiteSpace: 'nowrap' },
 };

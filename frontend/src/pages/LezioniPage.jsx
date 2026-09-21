@@ -142,24 +142,24 @@ function VistaAgenda({ giorno, lezioni, clienti, onApriForm, onDelete, localita,
 }
 
 const ag = {
-    wrapper: { backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 1px 8px rgba(0,0,0,0.06)', overflow: 'hidden' },
-    dayHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#fafafa', borderBottom: '1px solid #f0f0f0' },
-    dayHeaderOggi: { backgroundColor: '#eef2ff' },
-    dayName: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e' },
-    dayDate: { fontSize: '13px', color: '#888', marginTop: '2px' },
-    oggiTag: { color: '#4361ee', fontWeight: '600' },
-    addBtn: { padding: '8px 14px', backgroundColor: '#4361ee', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' },
+    wrapper: { backgroundColor: 'var(--surface)', borderRadius: '16px', boxShadow: 'var(--shadow)', overflow: 'hidden' },
+    dayHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'var(--surface-2)', borderBottom: '1px solid var(--border)' },
+    dayHeaderOggi: { backgroundColor: 'var(--accent-soft)' },
+    dayName: { fontSize: '16px', fontWeight: '700', color: 'var(--text)' },
+    dayDate: { fontSize: '13px', color: 'var(--muted)', marginTop: '2px' },
+    oggiTag: { color: 'var(--accent)', fontWeight: '600' },
+    addBtn: { padding: '8px 14px', backgroundColor: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' },
     empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px', gap: '8px' },
     emptyIcon: { fontSize: '32px' },
-    emptyTesto: { color: '#aaa', fontSize: '14px' },
+    emptyTesto: { color: 'var(--faint)', fontSize: '14px' },
     lista: { display: 'flex', flexDirection: 'column' },
-    card: { display: 'flex', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #f5f5f5', cursor: 'pointer', gap: '12px' },
-    colorBar: { width: '4px', height: '48px', backgroundColor: '#4361ee', borderRadius: '2px', flexShrink: 0 },
+    card: { display: 'flex', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer', gap: '12px' },
+    colorBar: { width: '4px', height: '48px', backgroundColor: 'var(--brand)', borderRadius: '2px', flexShrink: 0 },
     cardBody: { flex: 1 },
     cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' },
-    orario: { fontSize: '15px', fontWeight: '700', color: '#1a1a2e' },
-    durata: { fontSize: '12px', color: '#888', backgroundColor: '#f4f5f7', padding: '2px 8px', borderRadius: '6px' },
-    clienti: { fontSize: '13px', color: '#666' },
+    orario: { fontSize: '15px', fontWeight: '700', color: 'var(--text)' },
+    durata: { fontSize: '12px', color: 'var(--muted)', backgroundColor: 'var(--bg)', padding: '2px 8px', borderRadius: '6px' },
+    clienti: { fontSize: '13px', color: 'var(--muted)' },
     delBtn: { padding: '6px', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' },
 };
 
@@ -179,9 +179,9 @@ function CampoLocalita({ localita, predefinita, onChange }) {
     return (
         <div>
             <label style={s.formLabel}>Località</label>
-            <div style={{ fontSize: '14px', color: '#1a1a2e', margin: '6px 0' }}>
+            <div style={{ fontSize: '14px', color: 'var(--text)', margin: '6px 0' }}>
                 {mostrata ? `📍 ${mostrata.name}` : 'Nessuna località: impostala in Impostazioni oppure cercala qui'}
-                {!localita && predefinita && <span style={{ color: '#888' }}> (predefinita)</span>}
+                {!localita && predefinita && <span style={{ color: 'var(--muted)' }}> (predefinita)</span>}
             </div>
             {!cambia ? (
                 <button type="button" style={s.linkBtn} onClick={() => setCambia(true)}>Cambia località</button>
@@ -500,7 +500,7 @@ export default function LezioniPage({ onLogout }) {
                                             <div key={ora} style={{
                                                 ...s.slotLine,
                                                 top: si * SLOT_H,
-                                                borderTop: ora.endsWith(':00') ? '1px solid #e8e8e8' : '1px dashed #f0f0f0'
+                                                borderTop: ora.endsWith(':00') ? '1px solid var(--border)' : '1px dashed var(--border)'
                                             }} />
                                         ))}
                                         {lez.map(l => {
@@ -606,9 +606,9 @@ export default function LezioniPage({ onLogout }) {
 }
 
 const s = {
-    page: { minHeight: '100vh', backgroundColor: '#f4f5f7', fontFamily: "'Segoe UI', sans-serif" },
-    loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#666' },
-    header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: '56px', backgroundColor: '#1a1a2e', color: 'white' },
+    page: { minHeight: '100vh', backgroundColor: 'var(--bg)', fontFamily: "'Segoe UI', sans-serif" },
+    loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--muted)' },
+    header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: '56px', backgroundColor: 'var(--header-bg)', color: 'white' },
     brand: { fontWeight: '700', fontSize: '16px', letterSpacing: '0.5px' },
     nav: { display: 'flex', gap: '4px' },
     navBtn: { padding: '6px 16px', backgroundColor: 'transparent', color: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
@@ -616,50 +616,50 @@ const s = {
     logoutBtn: { padding: '6px 14px', backgroundColor: 'rgba(231,76,60,0.8)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
     toolbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
     navCal: { display: 'flex', alignItems: 'center', gap: '8px' },
-    arrowBtn: { width: '32px', height: '32px', backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '18px', lineHeight: 1, color: '#1a1a2e' },
-    labelMese: { padding: '6px 14px', backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#1a1a2e', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-    oggiBtn: { padding: '7px 16px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
-    addBtnMobile: { width: '36px', height: '36px', backgroundColor: '#4361ee', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '22px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    arrowBtn: { width: '32px', height: '32px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontSize: '18px', lineHeight: 1, color: 'var(--text)' },
+    labelMese: { padding: '6px 14px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: 'var(--text)', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    oggiBtn: { padding: '7px 16px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
+    addBtnMobile: { width: '36px', height: '36px', backgroundColor: 'var(--brand)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '22px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
     pickerOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
-    pickerBox: { backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '280px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' },
+    pickerBox: { backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '24px', width: '280px', boxShadow: 'var(--shadow-lg)' },
     pickerHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
-    pickerYear: { fontSize: '18px', fontWeight: '700', color: '#1a1a2e' },
+    pickerYear: { fontSize: '18px', fontWeight: '700', color: 'var(--text)' },
     mesGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' },
-    meseBtn: { padding: '10px', backgroundColor: '#f4f5f7', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500', color: '#1a1a2e' },
-    meseBtnActive: { backgroundColor: '#1a1a2e', color: 'white' },
-    calWrapper: { backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.07)', overflow: 'hidden' },
-    headerRow: { display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', borderBottom: '2px solid #f0f0f0', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 },
-    timeColHeader: { backgroundColor: '#fafafa' },
-    dayHeader: { padding: '12px 4px', textAlign: 'center', borderLeft: '1px solid #f0f0f0' },
-    dayHeaderOggi: { backgroundColor: '#eef2ff' },
-    dayShort: { display: 'block', fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' },
-    dayNum: { display: 'block', fontSize: '18px', fontWeight: '600', color: '#1a1a2e', marginTop: '2px' },
-    dayNumOggi: { backgroundColor: '#4361ee', color: 'white', borderRadius: '50%', width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: '2px' },
+    meseBtn: { padding: '10px', backgroundColor: 'var(--bg)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500', color: 'var(--text)' },
+    meseBtnActive: { backgroundColor: 'var(--primary)', color: 'white' },
+    calWrapper: { backgroundColor: 'var(--surface)', borderRadius: '16px', boxShadow: 'var(--shadow)', overflow: 'hidden' },
+    headerRow: { display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, backgroundColor: 'var(--surface)', zIndex: 10 },
+    timeColHeader: { backgroundColor: 'var(--surface-2)' },
+    dayHeader: { padding: '12px 4px', textAlign: 'center', borderLeft: '1px solid var(--border)' },
+    dayHeaderOggi: { backgroundColor: 'var(--accent-soft)' },
+    dayShort: { display: 'block', fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' },
+    dayNum: { display: 'block', fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginTop: '2px' },
+    dayNumOggi: { backgroundColor: 'var(--brand)', color: 'white', borderRadius: '50%', width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: '2px' },
     calBody: { overflowY: 'auto', maxHeight: 'calc(100vh - 210px)' },
     calBodyInner: { display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)' },
-    timeCol: { backgroundColor: '#fafafa', borderRight: '1px solid #f0f0f0' },
-    timeLabel: { height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: '8px', paddingTop: '4px', fontSize: '11px', color: '#aaa', boxSizing: 'border-box' },
-    dayCol: { position: 'relative', height: GRID_HEIGHT, borderLeft: '1px solid #f0f0f0', cursor: 'pointer' },
+    timeCol: { backgroundColor: 'var(--surface-2)', borderRight: '1px solid var(--border)' },
+    timeLabel: { height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: '8px', paddingTop: '4px', fontSize: '11px', color: 'var(--faint)', boxSizing: 'border-box' },
+    dayCol: { position: 'relative', height: GRID_HEIGHT, borderLeft: '1px solid var(--border)', cursor: 'pointer' },
     slotLine: { position: 'absolute', left: 0, right: 0, height: 0, pointerEvents: 'none' },
-    lezBlock: { position: 'absolute', left: '3px', right: '3px', backgroundColor: '#4361ee', color: 'white', borderRadius: '6px', padding: '4px 6px', overflow: 'hidden', cursor: 'pointer', boxSizing: 'border-box', boxShadow: '0 2px 6px rgba(67,97,238,0.3)' },
+    lezBlock: { position: 'absolute', left: '3px', right: '3px', backgroundColor: 'var(--brand)', color: 'white', borderRadius: '6px', padding: '4px 6px', overflow: 'hidden', cursor: 'pointer', boxSizing: 'border-box', boxShadow: '0 2px 6px rgba(67,97,238,0.3)' },
     blockOra: { display: 'block', fontWeight: '700', fontSize: '10px', opacity: 0.85 },
     blockClienti: { display: 'block', fontSize: '11px', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     blockDel: { position: 'absolute', top: '3px', right: '5px', backgroundColor: 'transparent', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: 0 },
-    overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
-    modal: { backgroundColor: 'white', borderRadius: '16px', padding: '28px', width: '400px', maxWidth: '90vw', boxSizing: 'border-box' , boxShadow: '0 16px 48px rgba(0,0,0,0.2)'},
-    handle: { width: '40px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px', margin: '0 auto 20px' },
-    linkBtn: { padding: 0, background: 'none', border: 'none', color: '#4361ee', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
-    modalTitolo: { fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '20px' },
+    overlay: { position: 'fixed', inset: 0, backgroundColor: 'var(--overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
+    modal: { backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '28px', width: '400px', maxWidth: '90vw', boxSizing: 'border-box' , boxShadow: 'var(--shadow-lg)'},
+    handle: { width: '40px', height: '4px', backgroundColor: 'var(--border)', borderRadius: '2px', margin: '0 auto 20px' },
+    linkBtn: { padding: 0, background: 'none', border: 'none', color: 'var(--accent)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
+    modalTitolo: { fontSize: '18px', fontWeight: '700', color: 'var(--text)', marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '12px' },
-    formLabel: { fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
-    input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', outline: 'none', color: '#1a1a2e', backgroundColor: 'white' },
-    select: { flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e', outline: 'none', boxSizing: 'border-box', minWidth: 0 },
+    formLabel: { fontSize: '12px', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' },
+    input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', outline: 'none', color: 'var(--text)', backgroundColor: 'var(--surface)' },
+    select: { flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', backgroundColor: 'var(--surface)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box', minWidth: 0 },
     row: { display: 'flex', gap: '12px' },
     chipGrid: { display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' },
-    clientChip: { padding: '6px 14px', borderRadius: '20px', backgroundColor: '#f0f0f0', cursor: 'pointer', fontSize: '13px', userSelect: 'none', boxSizing: 'border-box' },
-    clientChipOn: { backgroundColor: '#1a1a2e', color: 'white' },
-    errore: { color: '#e74c3c', fontSize: '13px' },
-    submitBtn: { flex: 1, padding: '11px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
-    cancelBtn: { flex: 1, padding: '11px', backgroundColor: '#f0f0f0', color: '#333', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
+    clientChip: { padding: '6px 14px', borderRadius: '20px', backgroundColor: 'var(--surface-2)', cursor: 'pointer', fontSize: '13px', userSelect: 'none', boxSizing: 'border-box' },
+    clientChipOn: { backgroundColor: 'var(--primary)', color: 'white' },
+    errore: { color: 'var(--danger)', fontSize: '13px' },
+    submitBtn: { flex: 1, padding: '11px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+    cancelBtn: { flex: 1, padding: '11px', backgroundColor: 'var(--surface-2)', color: 'var(--text)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
 };
 

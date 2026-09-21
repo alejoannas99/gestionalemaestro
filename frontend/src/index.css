@@ -1,111 +1,105 @@
+/* ── Tema ─────────────────────────────────────────────────────────────────────
+   I colori si scelgono per RUOLO (sfondo, superficie, testo...) e non per valore:
+   nelle pagine si scrive var(--surface), e il tema chiaro/scuro cambia i valori qui sotto.
+   Il tema è impostato da src/theme.js con l'attributo data-theme sull'elemento <html>. */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --bg: #f4f5f7;            /* sfondo della pagina */
+  --surface: #ffffff;       /* schede, finestre, campi */
+  --surface-2: #f8f9fb;     /* fondo di zone secondarie */
+  --text: #1a1a2e;          /* testo principale */
+  --muted: #6b7280;         /* testo secondario */
+  --faint: #9ca3af;         /* testo molto discreto */
+  --border: #e5e7eb;        /* bordi e linee */
+  --primary: #1a1a2e;       /* pulsanti principali */
+  --on-primary: #ffffff;    /* testo sopra i pulsanti principali */
+  --header-bg: #1a1a2e;     /* barra in alto */
+  --brand: #4361ee;         /* azzurro dei pulsanti e dei badge con testo bianco: uguale nei due temi */
+  --accent: #4361ee;        /* colore di risalto per testi e link */
+  --accent-soft: #eef2ff;   /* fondo tenue dell'accento */
+  --success-soft: #ecfdf5;
+  --danger: #e74c3c;
+  --danger-soft: #fff0f0;
+  --danger-border: #ffd0d0;
+  --success: #16a34a;
+  --warn-bg: #fff7ed;
+  --warn-border: #fed7aa;
+  --warn-text: #9a3412;
+  --info-bg: #f0f9ff;
+  --info-border: #dbeafe;
+  --info-text: #1e3a8a;
+  --shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.2);
+  --overlay: rgba(0, 0, 0, 0.4);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --radius: 12px;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+:root[data-theme='dark'] {
+  --bg: #0f1020;
+  --surface: #181a2e;
+  --surface-2: #1f2238;
+  --text: #e8e9f3;
+  --muted: #9aa0b8;
+  --faint: #6b7190;
+  --border: #2c2f4a;
+  --primary: #4361ee;
+  --on-primary: #ffffff;
+  --header-bg: #12132a;
+  --brand: #4361ee;
+  --accent: #8ea2ff;
+  --accent-soft: #232a52;
+  --success-soft: #12301f;
+  --danger: #ff7b6e;
+  --danger-soft: #3a1f26;
+  --danger-border: #5a2b33;
+  --success: #4ade80;
+  --warn-bg: #3a2a17;
+  --warn-border: #5a4020;
+  --warn-text: #fbbf7a;
+  --info-bg: #182640;
+  --info-border: #24406b;
+  --info-text: #9ec5ff;
+  --shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --overlay: rgba(0, 0, 0, 0.6);
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  color-scheme: dark;
 }
 
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h1, h2, h3 {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* Campi di testo: seguono il tema e non prendono il "zoom" automatico di iPhone (serve almeno 16px) */
+input, select, textarea, button {
+  font-family: inherit;
 }
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+input, select, textarea {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+input::placeholder {
+  color: var(--faint);
 }

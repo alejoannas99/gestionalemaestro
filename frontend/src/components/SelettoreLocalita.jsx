@@ -52,8 +52,8 @@ export default function SelettoreLocalita({ onSeleziona }) {
 
 const s = {
     riga: { display: 'flex', gap: '8px' },
-    input: { flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', backgroundColor: 'white', color: '#1a1a2e', outline: 'none' },
-    bottone: { padding: '10px 14px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' },
-    errore: { color: '#e74c3c', fontSize: '13px', margin: '8px 0 0' },
-    risultato: { padding: '10px 12px', marginTop: '6px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', color: '#1a1a2e', backgroundColor: 'white', cursor: 'pointer' },
+    input: { flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', backgroundColor: 'var(--surface)', color: 'var(--text)', outline: 'none' },
+    bottone: { padding: '10px 14px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' },
+    errore: { color: 'var(--danger)', fontSize: '13px', margin: '8px 0 0' },
+    risultato: { padding: '10px 12px', marginTop: '6px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', color: 'var(--text)', backgroundColor: 'var(--surface)', cursor: 'pointer' },
 };

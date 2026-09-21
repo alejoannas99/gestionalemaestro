@@ -11,6 +11,7 @@ import LezioniPage from './pages/LezioniPage';
 import MieLezioniPage from './pages/MieLezioniPage';
 import RichiestePage from './pages/RichiestePage';
 import ImpostazioniPage from './pages/ImpostazioniPage';
+import MessaggiPage from './pages/MessaggiPage';
 
 // Il ruolo sta nel payload del JWT (la parte centrale, in base64url).
 // Serve solo a decidere quali pagine mostrare: i permessi veri li controlla il backend.
@@ -84,6 +85,9 @@ function App() {
                 {/* Area cliente (ruolo USER) */}
                 <Route path="/me" element={
                     role === 'USER' ? <MieLezioniPage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
+                } />
+                <Route path="/messaggi" element={
+                    role === 'USER' ? <MessaggiPage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
                 } />
                 <Route path="*" element={<Navigate to={isLoggedIn ? home : "/login"} />} />
             </Routes>
