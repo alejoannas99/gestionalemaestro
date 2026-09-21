@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getStatsClienti, getStatsLezioni, getTopCliente, getLezioni, getOreMese, getOreAnno, getRichieste } from '../services/api';
+import { getStatsClienti, getStatsLezioni, getTopCliente, getLezioni, getOreMese, getOreAnno, getRichieste, getImpostazioni } from '../services/api';
+import { MeteoOggi, DettaglioMeteo } from '../components/Meteo';
 
 const MESI_BREVI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 const GIORNI_SHORT = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
@@ -166,6 +167,18 @@ export default function DashboardPage({ onLogout }) {
     const [lezioni, setLezioni] = useState([]);
     const [loading, setLoading] = useState(true);
     const [richiesteInAttesa, setRichiesteInAttesa] = useState(0);
+    // Località predefinita per il meteo: undefined = ancora in caricamento, null = non impostata
+    const [localitaMeteo, setLocalitaMeteo] = useState(undefined);
+    const [giornoDettaglio, setGiornoDettaglio] = useState(null);
+
+    useEffect(() => {
+        getImpostazioni()
+            .then(r => (r.ok ? r.json() : Promise.reject()))
+            .then(d => setLocalitaMeteo(d.locationName
+                ? { name: d.locationName, latitude: d.latitude, longitude: d.longitude }
+                : null))
+            .catch(() => setLocalitaMeteo(null));
+    }, []);
 
     // Extra: se fallisce la dashboard funziona lo stesso, senza avviso
     useEffect(() => {
@@ -227,6 +240,17 @@ export default function DashboardPage({ onLogout }) {
                     <div style={s.avviso} onClick={() => navigate('/richieste')}>
                         🔔 {richiesteInAttesa === 1 ? 'Hai 1 richiesta di collegamento da approvare' : `Hai ${richiesteInAttesa} richieste di collegamento da approvare`} →
                     </div>
+                )}
+
+                {/* METEO DI OGGI (o invito a impostare la località) */}
+                {localitaMeteo && <MeteoOggi localita={localitaMeteo} onDettaglio={setGiornoDettaglio} />}
+                {localitaMeteo === null && (
+                    <div style={s.invito} onClick={() => navigate('/impostazioni')}>
+                        🌤️ Imposta dove fai lezione per vedere il meteo →
+                    </div>
+                )}
+                {giornoDettaglio && localitaMeteo && (
+                    <DettaglioMeteo localita={localitaMeteo} data={giornoDettaglio} onChiudi={() => setGiornoDettaglio(null)} />
                 )}
 
                 {/* STAT CARDS */}
@@ -311,6 +335,7 @@ const s = {
     navActive: { backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: '600' },
     logoutBtn: { padding: '6px 14px', backgroundColor: 'rgba(231,76,60,0.8)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
     // stat cards
+    invito: { backgroundColor: '#f0f9ff', border: '1px solid #dbeafe', color: '#1e3a8a', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', cursor: 'pointer', marginBottom: '16px' },
     avviso: { backgroundColor: '#fff7ed', border: '1px solid #fed7aa', color: '#9a3412', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', marginBottom: '16px' },
     statsRow: { display: 'grid' },
     statCard: { backgroundColor: 'white', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' },

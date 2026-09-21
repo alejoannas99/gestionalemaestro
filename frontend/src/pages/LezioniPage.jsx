@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLezioni, getClienti, addLezione, updateLezione, deleteLezione, getImpostazioni } from '../services/api';
 import SelettoreLocalita from '../components/SelettoreLocalita';
+import { IconaMeteo, DettaglioMeteo } from '../components/Meteo';
 
 // ── Hook responsività ────────────────────────────────────────────────────────
 function useIsMobile() {
@@ -71,7 +72,7 @@ function oraFromY(y) {
 // ══════════════════════════════════════════════════════════════════════════════
 // VISTA AGENDA (mobile) — mostra le lezioni di un giorno alla volta
 // ══════════════════════════════════════════════════════════════════════════════
-function VistaAgenda({ giorno, lezioni, clienti, onApriForm, onDelete }) {
+function VistaAgenda({ giorno, lezioni, clienti, onApriForm, onDelete, localita, onMeteo }) {
     const iso = toISO(giorno);
     const lezioniGiorno = lezioni
         .filter(l => l.date === iso)
@@ -94,6 +95,9 @@ function VistaAgenda({ giorno, lezioni, clienti, onApriForm, onDelete }) {
                         {giorno.getDate()} {MESI[giorno.getMonth()]} {giorno.getFullYear()}
                         {isOggi && <span style={ag.oggiTag}> • Oggi</span>}
                     </p>
+                    <div style={{ marginTop: '6px' }}>
+                        <IconaMeteo localita={localita} data={iso} onClick={() => onMeteo({ localita, data: iso })} />
+                    </div>
                 </div>
                 {/* pulsante aggiungi lezione per questo giorno */}
                 <button style={ag.addBtn} onClick={() => onApriForm(giorno, '09:00')}>
@@ -218,6 +222,7 @@ export default function LezioniPage({ onLogout }) {
     const [errore, setErrore] = useState('');
     // fixedLocation: se vero il campo località non si mostra; predefinita: la località delle impostazioni
     const [impostazioni, setImpostazioni] = useState({ fixedLocation: false, predefinita: null });
+    const [dettaglioMeteo, setDettaglioMeteo] = useState(null); // { localita, data } oppure null
 
     // Extra: se fallisce, il form funziona lo stesso senza il campo località predefinita
     useEffect(() => {
@@ -361,6 +366,12 @@ export default function LezioniPage({ onLogout }) {
         lezioniPerGiorno[l.date].push(l);
     });
 
+    // Dove sarà l'istruttore in un giorno: dove si svolge la prima lezione con una località, altrimenti la predefinita
+    const localitaGiorno = (iso) => {
+        const conLuogo = (lezioniPerGiorno[iso] || []).find(l => l.locationName);
+        return conLuogo ? localitaDi(conLuogo) : impostazioni.predefinita;
+    };
+
     if (loading) return <div style={s.loading}>Caricamento...</div>;
 
     return (
@@ -446,6 +457,8 @@ export default function LezioniPage({ onLogout }) {
                         clienti={clienti}
                         onApriForm={apriFormAgenda}
                         onDelete={handleDelete}
+                        localita={localitaGiorno(toISO(giornoMobile))}
+                        onMeteo={setDettaglioMeteo}
                     />
                 </div>
             ) : (
@@ -461,6 +474,10 @@ export default function LezioniPage({ onLogout }) {
                                 <div key={i} style={{ ...s.dayHeader, ...(isOggi ? s.dayHeaderOggi : {}) }}>
                                     <span style={s.dayShort}>{GIORNI_SHORT[i]}</span>
                                     <span style={{ ...s.dayNum, ...(isOggi ? s.dayNumOggi : {}) }}>{g.getDate()}</span>
+                                    <div style={{ marginTop: '4px' }}>
+                                        <IconaMeteo localita={localitaGiorno(iso)} data={iso}
+                                            onClick={() => setDettaglioMeteo({ localita: localitaGiorno(iso), data: iso })} />
+                                    </div>
                                 </div>
                             );
                         })}
@@ -508,6 +525,11 @@ export default function LezioniPage({ onLogout }) {
             )}
 
             {/* ── FORM MODALE ── */}
+            {dettaglioMeteo && (
+                <DettaglioMeteo localita={dettaglioMeteo.localita} data={dettaglioMeteo.data}
+                    onChiudi={() => setDettaglioMeteo(null)} />
+            )}
+
             {showForm && (
                 <div style={{ ...s.overlay, ...(isMobile ? { alignItems: 'flex-end' } : {}) }} onClick={() => setShowForm(false)}>
                     <div style={{

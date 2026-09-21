@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMieLezioni, getMioRiepilogo, getIstruttori, getMieRichieste, inviaRichiesta } from '../services/api';
+import { IconaMeteo, MeteoOggi, DettaglioMeteo } from '../components/Meteo';
 
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
@@ -21,6 +22,12 @@ function fmtData(iso) {
 function perData(a, b) {
     return (a.date + a.start).localeCompare(b.date + b.start);
 }
+// La località di una lezione, o null se non è stata indicata
+function localitaDi(lezione) {
+    return lezione.latitude != null
+        ? { name: lezione.locationName, latitude: lezione.latitude, longitude: lezione.longitude }
+        : null;
+}
 
 export default function MieLezioniPage({ onLogout }) {
     const navigate = useNavigate();
@@ -28,6 +35,7 @@ export default function MieLezioniPage({ onLogout }) {
     const [loading, setLoading] = useState(true);
     const [errore, setErrore] = useState('');
     const [riepilogo, setRiepilogo] = useState(null);
+    const [dettaglioMeteo, setDettaglioMeteo] = useState(null); // { localita, data } oppure null
 
     // Il riepilogo è un extra: se fallisce la pagina funziona lo stesso, senza il riquadro
     useEffect(() => {
@@ -48,6 +56,11 @@ export default function MieLezioniPage({ onLogout }) {
     const prossime = lezioni.filter(l => l.date >= oggi).sort(perData);
     const passate = lezioni.filter(l => l.date < oggi).sort(perData).reverse();
 
+    // Meteo di oggi: dove si svolge la lezione di oggi o, altrimenti, la prossima che ha una località
+    const conLuogo = prossime.filter(l => localitaDi(l));
+    const lezioneMeteo = conLuogo.find(l => l.date === oggi) || conLuogo[0];
+    const localitaOggi = lezioneMeteo ? localitaDi(lezioneMeteo) : null;
+
     return (
         <div style={styles.pagina}>
             <div style={styles.header}>
@@ -57,6 +70,10 @@ export default function MieLezioniPage({ onLogout }) {
                     <button style={styles.esci} onClick={onLogout}>Esci</button>
                 </div>
             </div>
+
+            {localitaOggi && (
+                <MeteoOggi localita={localitaOggi} onDettaglio={data => setDettaglioMeteo({ localita: localitaOggi, data })} />
+            )}
 
             {riepilogo && riepilogo.lessons > 0 && <RiquadroRiepilogo riepilogo={riepilogo} />}
 
@@ -74,7 +91,7 @@ export default function MieLezioniPage({ onLogout }) {
                 <>
                     <h2 style={styles.sezione}>Prossime</h2>
                     <div style={styles.griglia}>
-                        {prossime.map(l => <Scheda key={l.id} lezione={l} />)}
+                        {prossime.map(l => <Scheda key={l.id} lezione={l} onMeteo={setDettaglioMeteo} />)}
                     </div>
                 </>
             )}
@@ -89,6 +106,11 @@ export default function MieLezioniPage({ onLogout }) {
 
             <h2 style={styles.sezione}>Collegamento</h2>
             <CollegaIstruttore />
+
+            {dettaglioMeteo && (
+                <DettaglioMeteo localita={dettaglioMeteo.localita} data={dettaglioMeteo.data}
+                    onChiudi={() => setDettaglioMeteo(null)} />
+            )}
         </div>
     );
 }
@@ -175,13 +197,22 @@ function RiquadroRiepilogo({ riepilogo }) {
     );
 }
 
-function Scheda({ lezione, passata }) {
+// onMeteo: se presente (lezioni future) la scheda mostra l'icona del meteo che apre il dettaglio
+function Scheda({ lezione, passata, onMeteo }) {
+    const localita = localitaDi(lezione);
     return (
         <div style={{ ...styles.scheda, opacity: passata ? 0.6 : 1 }}>
-            <div style={styles.data}>{fmtData(lezione.date)}</div>
+            <div style={styles.rigaTitolo}>
+                <div style={styles.data}>{fmtData(lezione.date)}</div>
+                {onMeteo && localita && (
+                    <IconaMeteo localita={localita} data={lezione.date}
+                        onClick={() => onMeteo({ localita, data: lezione.date })} />
+                )}
+            </div>
             <div style={styles.dettaglio}>
                 {fmtOra(lezione.start)} – {fmtOra(lezione.finish)} · con {lezione.instructorName} {lezione.instructorSurname}
             </div>
+            {localita && <div style={styles.dettaglio}>📍 {localita.name}</div>}
         </div>
     );
 }
@@ -204,6 +235,7 @@ const styles = {
     ok: { color: 'green', fontSize: '13px', margin: '10px 0 0' },
     sezione: { fontSize: '14px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '20px 0 8px' },
     scheda: { backgroundColor: 'white', borderRadius: '12px', padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+    rigaTitolo: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' },
     data: { fontSize: '15px', fontWeight: 'bold', color: '#1a1a2e' },
     dettaglio: { fontSize: '13px', color: '#666', marginTop: '4px' },
     testo: { color: '#666', fontSize: '14px' },
