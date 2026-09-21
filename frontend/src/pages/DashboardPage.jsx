@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStatsClienti, getStatsLezioni, getTopCliente, getLezioni, getOreMese, getOreAnno, getRichieste, getImpostazioni } from '../services/api';
 import { MeteoOggi, DettaglioMeteo } from '../components/Meteo';
+import AppShell from '../components/AppShell';
 
 const MESI_BREVI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 const GIORNI_SHORT = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
@@ -219,21 +220,7 @@ export default function DashboardPage({ onLogout }) {
     ];
 
     return (
-        <div style={s.page}>
-            {/* HEADER */}
-            <div style={s.header}>
-                <span style={s.brand}>GestionaleMaestro</span>
-                <div style={s.nav}>
-                    {[['Dashboard','🏠','/dashboard',true],['Clienti','👥','/clienti'],['Lezioni','📅','/lezioni'],['Impostazioni','⚙️','/impostazioni']].map(([label, icon, path, active]) => (
-                        <button key={path} onClick={() => navigate(path)}
-                            style={{ ...s.navBtn, ...(active ? s.navActive : {}) }}>
-                            {isMobile ? icon : label}
-                        </button>
-                    ))}
-                </div>
-                <button style={s.logoutBtn} onClick={onLogout}>{isMobile ? '↩' : 'Esci'}</button>
-            </div>
-
+        <AppShell ruolo="INSTRUCTOR" onLogout={onLogout} piena>
             <div style={{ ...s.content, padding: isMobile ? '16px' : '20px 24px' }}>
                 {/* AVVISO RICHIESTE: compare solo se ce ne sono in attesa */}
                 {richiesteInAttesa > 0 && (
@@ -317,7 +304,7 @@ export default function DashboardPage({ onLogout }) {
                     <GraficoLezioni isMobile={isMobile} />
                 </div>
             </div>
-        </div>
+        </AppShell>
     );
 }
 

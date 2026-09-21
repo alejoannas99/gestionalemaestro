@@ -78,7 +78,7 @@ function App() {
                 {/* Impostazioni: per tutti i ruoli, ma la sezione località compare solo agli istruttori */}
                 <Route path="/impostazioni" element={
                     isLoggedIn
-                        ? <ImpostazioniPage onLogout={handleLogout} isInstructor={isInstructor} home={home} />
+                        ? <ImpostazioniPage onLogout={handleLogout} isInstructor={isInstructor} />
                         : <Navigate to="/login" />
                 } />
 

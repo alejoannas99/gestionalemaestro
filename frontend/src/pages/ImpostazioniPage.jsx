@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getImpostazioni, salvaImpostazioni } from '../services/api';
 import SelettoreLocalita from '../components/SelettoreLocalita';
-import ClientShell from '../components/ClientShell';
+import AppShell from '../components/AppShell';
 import { temaSalvato, impostaTema } from '../theme';
 
 const OPZIONI_TEMA = [
@@ -11,9 +10,7 @@ const OPZIONI_TEMA = [
     { valore: 'scuro', etichetta: '🌙 Scuro' },
 ];
 
-// home: dove torna il pulsante indietro (dashboard per l'istruttore, /me per il cliente)
-export default function ImpostazioniPage({ onLogout, isInstructor, home }) {
-    const navigate = useNavigate();
+export default function ImpostazioniPage({ onLogout, isInstructor }) {
     const [localita, setLocalita] = useState(null); // { name, latitude, longitude } oppure null
     const [fissa, setFissa] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -110,26 +107,11 @@ export default function ImpostazioniPage({ onLogout, isInstructor, home }) {
         </>
     );
 
-    // Il cliente usa la struttura con la navigazione in basso; l'istruttore la sua barra con il pulsante indietro
-    if (!isInstructor) return <ClientShell onLogout={onLogout}>{contenuto}</ClientShell>;
-    return (
-        <div style={s.page}>
-            <div style={s.header}>
-                <button style={s.indietro} onClick={() => navigate(home)}>← Indietro</button>
-                <button style={s.logoutBtn} onClick={onLogout}>Esci</button>
-            </div>
-            <div style={s.content}>{contenuto}</div>
-        </div>
-    );
+    return <AppShell ruolo={isInstructor ? 'INSTRUCTOR' : 'USER'} onLogout={onLogout}>{contenuto}</AppShell>;
 }
 
 const s = {
-    page: { minHeight: '100vh', backgroundColor: 'var(--bg)', fontFamily: "'Segoe UI', sans-serif", textAlign: 'left' },
-    header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: '56px', backgroundColor: 'var(--header-bg)', color: 'white' },
-    indietro: { padding: '6px 12px', backgroundColor: 'transparent', color: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
-    logoutBtn: { padding: '6px 14px', backgroundColor: 'rgba(231,76,60,0.8)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
-    content: { padding: '20px 24px', maxWidth: '640px', margin: '0 auto', width: '100%', boxSizing: 'border-box' },
-    titolo: { fontSize: '22px', fontWeight: '700', color: 'var(--text)', margin: '0 0 16px' },
+    titolo: { fontSize: '24px', fontWeight: '700', color: 'var(--text)', margin: '0 0 16px' },
     testo: { color: 'var(--muted)', fontSize: '14px' },
     card: { backgroundColor: 'var(--surface)', borderRadius: '12px', padding: '16px', marginBottom: '16px', boxShadow: 'var(--shadow)' },
     cardTitolo: { fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' },

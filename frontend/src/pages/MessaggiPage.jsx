@@ -1,9 +1,9 @@
-import ClientShell from '../components/ClientShell';
+import AppShell from '../components/AppShell';
 
 // Segnaposto: la messaggistica con il maestro arriverà più avanti
 export default function MessaggiPage({ onLogout }) {
     return (
-        <ClientShell onLogout={onLogout}>
+        <AppShell ruolo="USER" onLogout={onLogout}>
             <h1 style={s.titolo}>Messaggi</h1>
             <div style={s.vuoto}>
                 <div style={s.emoji}>💬</div>
@@ -13,7 +13,7 @@ export default function MessaggiPage({ onLogout }) {
                     e avvisarvi se arrivate in ritardo.
                 </p>
             </div>
-        </ClientShell>
+        </AppShell>
     );
 }
 

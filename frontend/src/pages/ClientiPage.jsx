@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getClienti, addCliente, updateCliente, deleteCliente } from '../services/api';
+import AppShell from '../components/AppShell';
 
 // ── Hook responsività ────────────────────────────────────────────────────────
 function useIsMobile() {
@@ -23,7 +23,6 @@ function avatarColor(name) {
 // COMPONENTE PRINCIPALE
 // ══════════════════════════════════════════════════════════════════════════════
 export default function ClientiPage({ onLogout }) {
-    const navigate = useNavigate();
     const isMobile = useIsMobile();
 
     const [clienti, setClienti] = useState([]);
@@ -89,29 +88,7 @@ export default function ClientiPage({ onLogout }) {
     if (loading) return <div style={s.loading}>Caricamento...</div>;
 
     return (
-        <div style={s.page}>
-
-            {/* ── HEADER ── */}
-            <div style={s.header}>
-                <span style={s.brand}>GestionaleMaestro</span>
-                <div style={s.nav}>
-                    <button style={s.navBtn} onClick={() => navigate('/dashboard')}>
-                        {isMobile ? '🏠' : 'Dashboard'}
-                    </button>
-                    <button style={{ ...s.navBtn, ...s.navActive }}>
-                        {isMobile ? '👥' : 'Clienti'}
-                    </button>
-                    <button style={s.navBtn} onClick={() => navigate('/lezioni')}>
-                        {isMobile ? '📅' : 'Lezioni'}
-                    </button>
-                    <button style={s.navBtn} onClick={() => navigate('/impostazioni')}>
-                        {isMobile ? '⚙️' : 'Impostazioni'}
-                    </button>
-                </div>
-                <button style={s.logoutBtn} onClick={onLogout}>
-                    {isMobile ? '↩' : 'Esci'}
-                </button>
-            </div>
+        <AppShell ruolo="INSTRUCTOR" onLogout={onLogout} piena>
 
             {/* ── TOOLBAR ──
                 Desktop: tutto su una riga
@@ -234,7 +211,7 @@ export default function ClientiPage({ onLogout }) {
                     </div>
                 </div>
             )}
-        </div>
+        </AppShell>
     );
 }
 

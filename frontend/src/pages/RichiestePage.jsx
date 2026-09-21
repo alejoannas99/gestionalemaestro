@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getRichieste, approvaRichiesta, rifiutaRichiesta } from '../services/api';
+import AppShell from '../components/AppShell';
+import { RICHIESTE_CAMBIATE } from '../events';
 
 const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 
@@ -19,7 +20,6 @@ function periodo(r) {
 }
 
 export default function RichiestePage({ onLogout }) {
-    const navigate = useNavigate();
     const [richieste, setRichieste] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errore, setErrore] = useState('');
@@ -36,20 +36,19 @@ export default function RichiestePage({ onLogout }) {
         setErrore('');
         try {
             const res = await azione(id);
-            if (res.ok) carica();
-            else setErrore(await res.text());
+            if (res.ok) {
+                carica();
+                window.dispatchEvent(new Event(RICHIESTE_CAMBIATE)); // la barra di navigazione aggiorna il numero sul 🔔
+            } else {
+                setErrore(await res.text());
+            }
         } catch {
             setErrore('Errore di connessione');
         }
     };
 
     return (
-        <div style={s.page}>
-            <div style={s.header}>
-                <button style={s.indietro} onClick={() => navigate('/dashboard')}>← Dashboard</button>
-                <button style={s.logoutBtn} onClick={onLogout}>Esci</button>
-            </div>
-
+        <AppShell ruolo="INSTRUCTOR" onLogout={onLogout}>
             <div style={s.content}>
                 <h1 style={s.titolo}>Richieste di collegamento</h1>
                 <p style={s.sotto}>
@@ -77,17 +76,13 @@ export default function RichiestePage({ onLogout }) {
                     ))}
                 </div>
             </div>
-        </div>
+        </AppShell>
     );
 }
 
 const s = {
-    page: { minHeight: '100vh', backgroundColor: 'var(--bg)', fontFamily: "'Segoe UI', sans-serif", textAlign: 'left' },
-    header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: '56px', backgroundColor: 'var(--header-bg)', color: 'white' },
-    indietro: { padding: '6px 12px', backgroundColor: 'transparent', color: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
-    logoutBtn: { padding: '6px 14px', backgroundColor: 'rgba(231,76,60,0.8)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
-    content: { padding: '20px 24px', maxWidth: '900px', margin: '0 auto', width: '100%', boxSizing: 'border-box' },
-    titolo: { fontSize: '22px', fontWeight: '700', color: 'var(--text)', margin: '0 0 6px' },
+    content: { padding: '20px 16px', maxWidth: '900px', margin: '0 auto', width: '100%', boxSizing: 'border-box' },
+    titolo: { fontSize: '24px', fontWeight: '700', color: 'var(--text)', margin: '0 0 6px' },
     sotto: { fontSize: '14px', color: 'var(--muted)', margin: '0 0 16px' },
     testo: { color: 'var(--muted)', fontSize: '14px' },
     vuoto: { color: 'var(--muted)', fontSize: '14px', backgroundColor: 'var(--surface)', padding: '16px', borderRadius: '12px' },

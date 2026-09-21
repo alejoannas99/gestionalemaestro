@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getMieLezioni, getMioRiepilogo, getIstruttori, getMieRichieste, inviaRichiesta } from '../services/api';
 import { IconaMeteo, MeteoOggi, DettaglioMeteo } from '../components/Meteo';
-import ClientShell from '../components/ClientShell';
+import AppShell from '../components/AppShell';
 
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
@@ -88,7 +88,7 @@ export default function MieLezioniPage({ onLogout }) {
     const apriMeteo = (localita, data) => setDettaglioMeteo({ localita, data });
 
     return (
-        <ClientShell onLogout={onLogout}>
+        <AppShell ruolo="USER" onLogout={onLogout}>
             <h1 style={s.titolo}>Le mie lezioni</h1>
 
             {loading && <p style={s.testo}>Caricamento...</p>}
@@ -150,7 +150,7 @@ export default function MieLezioniPage({ onLogout }) {
                 <DettaglioMeteo localita={dettaglioMeteo.localita} data={dettaglioMeteo.data}
                     onChiudi={() => setDettaglioMeteo(null)} />
             )}
-        </ClientShell>
+        </AppShell>
     );
 }
 

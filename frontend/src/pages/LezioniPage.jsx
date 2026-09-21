@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getLezioni, getClienti, addLezione, updateLezione, deleteLezione, getImpostazioni } from '../services/api';
 import SelettoreLocalita from '../components/SelettoreLocalita';
 import { IconaMeteo, DettaglioMeteo } from '../components/Meteo';
+import AppShell from '../components/AppShell';
 
 // ── Hook responsività ────────────────────────────────────────────────────────
 function useIsMobile() {
@@ -201,7 +201,6 @@ function CampoLocalita({ localita, predefinita, onChange }) {
 }
 
 export default function LezioniPage({ onLogout }) {
-    const navigate = useNavigate();
     const isMobile = useIsMobile();
 
     const [lezioni, setLezioni] = useState([]);
@@ -375,29 +374,7 @@ export default function LezioniPage({ onLogout }) {
     if (loading) return <div style={s.loading}>Caricamento...</div>;
 
     return (
-        <div style={s.page}>
-
-            {/* ── HEADER ── */}
-            <div style={s.header}>
-                <span style={s.brand}>GestionaleMaestro</span>
-                <div style={s.nav}>
-                    <button style={s.navBtn} onClick={() => navigate('/dashboard')}>
-                        {isMobile ? '🏠' : 'Dashboard'}
-                    </button>
-                    <button style={s.navBtn} onClick={() => navigate('/clienti')}>
-                        {isMobile ? '👥' : 'Clienti'}
-                    </button>
-                    <button style={{ ...s.navBtn, ...s.navActive }}>
-                        {isMobile ? '📅' : 'Lezioni'}
-                    </button>
-                    <button style={s.navBtn} onClick={() => navigate('/impostazioni')}>
-                        {isMobile ? '⚙️' : 'Impostazioni'}
-                    </button>
-                </div>
-                <button style={s.logoutBtn} onClick={onLogout}>
-                    {isMobile ? '↩' : 'Esci'}
-                </button>
-            </div>
+        <AppShell ruolo="INSTRUCTOR" onLogout={onLogout} piena>
 
             {/* ── TOOLBAR ── */}
             <div style={{ ...s.toolbar, padding: isMobile ? '12px 16px' : '16px 24px' }}>
@@ -601,7 +578,7 @@ export default function LezioniPage({ onLogout }) {
                     </div>
                 </div>
             )}
-        </div>
+        </AppShell>
     );
 }
 
