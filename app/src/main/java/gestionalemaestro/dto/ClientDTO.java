@@ -9,13 +9,14 @@ public record ClientDTO(
     String numTel,
     int lessonsAttended
 ) {
-    public static ClientDTO from(Client c) {
+    // lessonsAttended: le lezioni già svolte con l'istruttore, calcolate dalle lezioni (non più un contatore salvato)
+    public static ClientDTO from(Client c, int lessonsAttended) {
         return new ClientDTO(
             c.getCode(),
             c.getName(),
             c.getSurname(),
             c.getNumTel().orElse(null),
-            c.getLessonsAttended()
+            lessonsAttended
         );
     }
 }

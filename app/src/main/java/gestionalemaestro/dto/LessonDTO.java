@@ -11,7 +11,7 @@ public record LessonDTO(
     LocalDate date,
     LocalTime start,
     LocalTime finish,
-    List<ClientDTO> clients,
+    List<ClientSummaryDTO> clients,
     String locationName,
     Double latitude,
     Double longitude
@@ -23,7 +23,7 @@ public record LessonDTO(
             l.getDate(),
             l.getStart(),
             l.getFinish(),
-            l.getClients().stream().map(ClientDTO::from).toList(),
+            l.getClients().stream().map(ClientSummaryDTO::from).toList(),
             loc != null ? loc.getName() : null,
             loc != null ? loc.getLatitude() : null,
             loc != null ? loc.getLongitude() : null

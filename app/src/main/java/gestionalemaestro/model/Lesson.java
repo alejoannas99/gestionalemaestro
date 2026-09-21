@@ -74,6 +74,11 @@ public class Lesson {
         return Objects.hash(id);
     }
 
+    // Una lezione è "fatta" quando la sua fine è già passata: le ore future non contano nelle statistiche
+    public boolean isFinished() {
+        return java.time.LocalDateTime.of(date, finish).isBefore(java.time.LocalDateTime.now());
+    }
+
     public double getDurationInHours() {
         return java.time.Duration.between(start, finish).toMinutes() / 60.0;
     }

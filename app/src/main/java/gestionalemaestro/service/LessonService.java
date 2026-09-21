@@ -1,9 +1,9 @@
 package gestionalemaestro.service;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -53,43 +53,18 @@ public class LessonService {
               l.setInstructor(instructor);
               l.setLocation(location);
               lessonRepository.save(l);
-              for(Client c : clients){
-                     c.attendLesson();
-                     clientRepository.save(c);
-              }
-        
        }
 
        public void removeLesson(int id) {
               Lesson l = lessonRepository.findById(id);
               if (l != null) {
-              // decrementa lessonsAttended per ogni cliente della lezione
-              for (Client c : l.getClients()) {
-                     if (c.getLessonsAttended() > 0) {
-                     c.decrementLesson();
-                     clientRepository.save(c);
+                     lessonRepository.remove(l);
               }
-              }
-              lessonRepository.remove(l);
        }
-       }    
 
        public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients, Location newLocation) throws IllegalArgumentException {
        if (newclients.isEmpty()) {
               throw new DomainException("At least one client is required");
-       }
-       List<Client> oldClients = List.copyOf(l.getClients());
-       for (Client c : oldClients) {
-              if (!newclients.contains(c) && c.getLessonsAttended() > 0) {
-                     c.decrementLesson();
-                     clientRepository.save(c);
-              }
-       }
-       for (Client c : newclients) {
-              if (!oldClients.contains(c)) {
-                     c.attendLesson();
-                     clientRepository.save(c);
-              }
        }
        l.setDate(newDate);
        l.setStart(newstart);
@@ -121,9 +96,8 @@ public class LessonService {
 
        // Lezioni e ore già fatte dal cliente: totale e diviso per istruttore
        public Summary summaryOf(User user) {
-              LocalDateTime now = LocalDateTime.now();
               List<Lesson> done = showLessonsOf(user).stream()
-                     .filter(l -> LocalDateTime.of(l.getDate(), l.getFinish()).isBefore(now))
+                     .filter(Lesson::isFinished)
                      .toList();
 
               List<InstructorSummary> perInstructor = done.stream()
@@ -139,6 +113,14 @@ public class LessonService {
 
               double totalHours = perInstructor.stream().mapToDouble(InstructorSummary::hours).sum();
               return new Summary(done.size(), totalHours, perInstructor);
+       }
+
+       // Quante lezioni già svolte ha ciascun cliente con questo istruttore: codice cliente -> numero di lezioni
+       public Map<Integer, Long> finishedLessonsPerClient(User instructor) {
+              return lessonRepository.findByInstructor(instructor).stream()
+                     .filter(Lesson::isFinished)
+                     .flatMap(l -> l.getClients().stream())
+                     .collect(Collectors.groupingBy(Client::getCode, Collectors.counting()));
        }
 
        public List<Lesson> showLessons(User instructor) {

@@ -17,6 +17,8 @@ public class Client {
     private String name;
     private String surname;
     private String numTel;
+    // Colonna storica: non più usata (le lezioni svolte si calcolano dalle lezioni). Resta mappata perché nel
+    // database è NOT NULL; si può togliere con: ALTER TABLE clienti DROP COLUMN lessons_attended;
     private int lessonsAttended;
 
     @ManyToOne
@@ -65,14 +67,6 @@ public class Client {
         this.numTel = numTel.orElse(null);
     }
 
-    public int getLessonsAttended() {
-        return lessonsAttended;
-    }
-
-    public void attendLesson(){
-        this.lessonsAttended++;
-    }
-
     public Set<User> getAccounts() {
         return accounts;
     }
@@ -100,10 +94,6 @@ public class Client {
     @Override
     public int hashCode() {
         return java.util.Objects.hash(code);
-    }
-
-    public void decrementLesson() {
-        this.lessonsAttended--;
     }
 
 

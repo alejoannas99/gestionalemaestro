@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import gestionalemaestro.model.Client;
+import gestionalemaestro.dto.ClientDTO;
 import gestionalemaestro.model.User;
 import gestionalemaestro.service.StatsService;
 
@@ -37,9 +37,9 @@ public class StatsController {
 
     @GetMapping("/top-cliente")
     public ResponseEntity<?> topCliente() {
-        Client c = statsService.clientWithMoreLessonsAttended(getLoggedUser());
+        ClientDTO c = statsService.clientWithMoreLessonsAttended(getLoggedUser());
         if (c == null) {
-            return ResponseEntity.status(404).body("Nessun cliente registrato");
+            return ResponseEntity.status(404).body("Nessun cliente con lezioni svolte");
         }
         return ResponseEntity.ok(c);
     }

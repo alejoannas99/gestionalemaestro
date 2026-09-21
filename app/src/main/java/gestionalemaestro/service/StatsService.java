@@ -1,6 +1,7 @@
 package gestionalemaestro.service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -8,7 +9,9 @@ import java.time.Duration;
 
 import org.springframework.stereotype.Service;
 
+import gestionalemaestro.dto.ClientDTO;
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Lesson;
 import gestionalemaestro.model.User;
 import gestionalemaestro.store.ClientRepository;
 import gestionalemaestro.store.LessonRepository;
@@ -19,9 +22,12 @@ public class StatsService {
     private final ClientRepository clientRepository;
     private final LessonRepository lessonRepository;
 
-    public StatsService(ClientRepository clientRepository, LessonRepository lessonRepository) {
+    private final LessonService lessonService;
+
+    public StatsService(ClientRepository clientRepository, LessonRepository lessonRepository, LessonService lessonService) {
         this.clientRepository = clientRepository;
         this.lessonRepository = lessonRepository;
+        this.lessonService = lessonService;
     }
 
     public int countClients(User instructor) {
@@ -51,11 +57,13 @@ public class StatsService {
             .toList();
     }
 
-    public Client clientWithMoreLessonsAttended(User instructor) {
+    // Il cliente con più lezioni già svolte; null se nessuno ne ha ancora fatta una
+    public ClientDTO clientWithMoreLessonsAttended(User instructor) {
+        Map<Integer, Long> svolte = lessonService.finishedLessonsPerClient(instructor);
         return clientRepository.findByInstructor(instructor).stream()
-            .max((c1, c2) -> Integer.compare(
-                c1.getLessonsAttended(),
-                c2.getLessonsAttended()))
+            .filter(c -> svolte.getOrDefault(c.getCode(), 0L) > 0)
+            .max(Comparator.comparingLong(c -> svolte.get(c.getCode())))
+            .map(c -> ClientDTO.from(c, svolte.get(c.getCode()).intValue()))
             .orElse(null);
     }
 
@@ -73,6 +81,7 @@ public class StatsService {
         return lessonRepository.findByInstructor(instructor)
                 .stream()
                 .filter(l -> !l.getDate().isBefore(start) && !l.getDate().isAfter(end))
+                .filter(Lesson::isFinished)
                 .mapToDouble(l ->
                                 Duration.between(
                                     l.getStart(),
@@ -86,6 +95,7 @@ public class StatsService {
               return lessonRepository.findByInstructor(instructor).stream()
               .filter(l -> l.getDate().getMonthValue() == month)
               .filter(l -> l.getDate().getYear() == year)
+              .filter(Lesson::isFinished)
               .mapToDouble(l -> l.getDurationInHours())
               .sum();
        }

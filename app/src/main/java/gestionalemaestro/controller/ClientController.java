@@ -1,6 +1,7 @@
 package gestionalemaestro.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
@@ -13,15 +14,18 @@ import gestionalemaestro.model.User;
 import gestionalemaestro.service.ClientService;
 import gestionalemaestro.service.DomainException;
 import gestionalemaestro.service.DuplicateException;
+import gestionalemaestro.service.LessonService;
 
 @RestController
 @RequestMapping("/clienti")
 public class ClientController {
 
     private final ClientService clientService;
+    private final LessonService lessonService;
 
-    public ClientController(ClientService clientService) {
+    public ClientController(ClientService clientService, LessonService lessonService) {
         this.clientService = clientService;
+        this.lessonService = lessonService;
     }
 
     private User getLoggedUser() {
@@ -31,9 +35,11 @@ public class ClientController {
 
     @GetMapping
     public List<ClientDTO> getClienti() {
-        return clientService.showClients(getLoggedUser())
+        User instructor = getLoggedUser();
+        Map<Integer, Long> svolte = lessonService.finishedLessonsPerClient(instructor);
+        return clientService.showClients(instructor)
             .stream()
-            .map(ClientDTO::from)
+            .map(c -> ClientDTO.from(c, svolte.getOrDefault(c.getCode(), 0L).intValue()))
             .toList();
     }
 

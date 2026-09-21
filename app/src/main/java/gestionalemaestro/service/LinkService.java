@@ -1,7 +1,6 @@
 package gestionalemaestro.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -73,12 +72,11 @@ public class LinkService {
     }
 
     public List<PendingRequest> pendingFor(User instructor) {
-        LocalDateTime now = LocalDateTime.now();
         return requestRepository.findByInstructorAndStatus(instructor, LinkRequest.Status.PENDING).stream()
             .map(r -> {
                 List<Lesson> done = lessonRepository.findByInstructor(instructor).stream()
                     .filter(l -> l.getClients().contains(r.getClient()))
-                    .filter(l -> LocalDateTime.of(l.getDate(), l.getFinish()).isBefore(now))
+                    .filter(Lesson::isFinished)
                     .toList();
                 return new PendingRequest(
                     r.getId(),
