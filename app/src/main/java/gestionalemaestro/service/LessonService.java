@@ -1,7 +1,10 @@
 package gestionalemaestro.service;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 import gestionalemaestro.model.Client;
@@ -108,6 +111,31 @@ public class LessonService {
                      return List.of();
               }
               return lessonRepository.findByClients(matches);
+       }
+
+       public record InstructorSummary(String instructorName, String instructorSurname, int lessons, double hours) {}
+       public record Summary(int lessons, double hours, List<InstructorSummary> perInstructor) {}
+
+       // Lezioni e ore già fatte dal cliente: totale e diviso per istruttore
+       public Summary summaryOf(User user) {
+              LocalDateTime now = LocalDateTime.now();
+              List<Lesson> done = showLessonsOf(user).stream()
+                     .filter(l -> LocalDateTime.of(l.getDate(), l.getFinish()).isBefore(now))
+                     .toList();
+
+              List<InstructorSummary> perInstructor = done.stream()
+                     .collect(Collectors.groupingBy(Lesson::getInstructor))
+                     .entrySet().stream()
+                     .map(e -> new InstructorSummary(
+                            e.getKey().getName(),
+                            e.getKey().getSurname(),
+                            e.getValue().size(),
+                            e.getValue().stream().mapToDouble(Lesson::getDurationInHours).sum()))
+                     .sorted(Comparator.comparingDouble(InstructorSummary::hours).reversed())
+                     .toList();
+
+              double totalHours = perInstructor.stream().mapToDouble(InstructorSummary::hours).sum();
+              return new Summary(done.size(), totalHours, perInstructor);
        }
 
        public List<Lesson> showLessons(User instructor) {

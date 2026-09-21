@@ -31,4 +31,9 @@ public class MeController {
             .map(MyLessonDTO::from)
             .toList();
     }
+
+    @GetMapping("/riepilogo")
+    public LessonService.Summary getMyRiepilogo() {
+        return lessonService.summaryOf(getLoggedUser());
+    }
 }

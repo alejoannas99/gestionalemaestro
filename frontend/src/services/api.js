@@ -74,6 +74,9 @@ export const deleteLezione = (id) =>
 export const getMieLezioni = () =>
     authFetch(`${BASE_URL}/me/lezioni`);
 
+export const getMioRiepilogo = () =>
+    authFetch(`${BASE_URL}/me/riepilogo`);
+
 // STATS
 export const getStatsClienti = () =>
     authFetch(`${BASE_URL}/stats/clienti`);

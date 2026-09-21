@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMieLezioni } from '../services/api';
+import { getMieLezioni, getMioRiepilogo } from '../services/api';
 
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
@@ -9,6 +9,8 @@ function oggiISO() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 function fmtOra(t) { return t ? t.substring(0, 5) : ''; }
+// 6.5 -> "6,5 h", 12 -> "12 h"
+function fmtOre(n) { return `${(Math.round(n * 10) / 10).toString().replace('.', ',')} h`; }
 function fmtData(iso) {
     // "T00:00" fa interpretare la data come locale (senza, JS la leggerebbe in UTC e potrebbe slittare di giorno)
     const d = new Date(`${iso}T00:00`);
@@ -23,6 +25,15 @@ export default function MieLezioniPage({ onLogout }) {
     const [lezioni, setLezioni] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errore, setErrore] = useState('');
+    const [riepilogo, setRiepilogo] = useState(null);
+
+    // Il riepilogo è un extra: se fallisce la pagina funziona lo stesso, senza il riquadro
+    useEffect(() => {
+        getMioRiepilogo()
+            .then(r => (r.ok ? r.json() : Promise.reject()))
+            .then(setRiepilogo)
+            .catch(() => {});
+    }, []);
 
     useEffect(() => {
         getMieLezioni()
@@ -41,6 +52,8 @@ export default function MieLezioniPage({ onLogout }) {
                 <h1 style={styles.titolo}>Le mie lezioni</h1>
                 <button style={styles.esci} onClick={onLogout}>Esci</button>
             </div>
+
+            {riepilogo && riepilogo.lessons > 0 && <RiquadroRiepilogo riepilogo={riepilogo} />}
 
             {loading && <p style={styles.testo}>Caricamento...</p>}
             {errore && <p style={styles.errore}>{errore}</p>}
@@ -72,6 +85,23 @@ export default function MieLezioniPage({ onLogout }) {
     );
 }
 
+function RiquadroRiepilogo({ riepilogo }) {
+    return (
+        <div style={styles.riquadro}>
+            <div style={styles.riquadroTitolo}>Lezioni fatte</div>
+            <div style={styles.totale}>
+                {riepilogo.lessons} {riepilogo.lessons === 1 ? 'lezione' : 'lezioni'} · {fmtOre(riepilogo.hours)}
+            </div>
+            {riepilogo.perInstructor.map(i => (
+                <div key={`${i.instructorName}-${i.instructorSurname}`} style={styles.rigaIstruttore}>
+                    <span>{i.instructorName} {i.instructorSurname}</span>
+                    <span>{i.lessons} · {fmtOre(i.hours)}</span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 function Scheda({ lezione, passata }) {
     return (
         <div style={{ ...styles.scheda, opacity: passata ? 0.6 : 1 }}>
@@ -90,6 +120,10 @@ const styles = {
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
     titolo: { fontSize: '22px', color: '#1a1a2e', margin: 0 },
     esci: { padding: '8px 14px', backgroundColor: '#1a1a2e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' },
+    riquadro: { backgroundColor: 'white', borderRadius: '12px', padding: '16px', marginBottom: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+    riquadroTitolo: { fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' },
+    totale: { fontSize: '20px', fontWeight: 'bold', color: '#1a1a2e', margin: '4px 0 10px' },
+    rigaIstruttore: { display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#444', padding: '6px 0', borderTop: '1px solid #eee' },
     sezione: { fontSize: '14px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '20px 0 8px' },
     scheda: { backgroundColor: 'white', borderRadius: '12px', padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
     data: { fontSize: '15px', fontWeight: 'bold', color: '#1a1a2e' },
