@@ -66,8 +66,13 @@ public class ClientService {
         clientRepository.save(c);
     }
 
-    public List<Client> clientsdoingLesson(List<Integer> clientIds){
-        return clientRepository.findByCodes(clientIds);
+    public List<Client> clientsdoingLesson(List<Integer> clientIds, User instructor){
+        List<Client> found = clientRepository.findByCodes(clientIds);
+        // Stesso messaggio di "cliente inesistente": così non si scopre se un codice esiste presso un altro istruttore
+        if (found.stream().anyMatch(c -> !instructor.equals(c.getInstructor()))) {
+            throw new DomainException("Uno o più clienti non trovati");
+        }
+        return found;
     }
 
 

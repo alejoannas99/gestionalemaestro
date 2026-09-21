@@ -47,7 +47,7 @@ public class LessonController {
             LocalDate date = LocalDate.parse(request.data());
             LocalTime start = LocalTime.parse(request.inizio());
             LocalTime finish = LocalTime.parse(request.fine());
-            List<Client> clients = clientService.clientsdoingLesson(request.codiciClienti());
+            List<Client> clients = clientService.clientsdoingLesson(request.codiciClienti(), getLoggedUser());
             lessonService.newLesson(start, date, finish, clients, getLoggedUser());
             return ResponseEntity.status(201).body("Lezione creata");
         } catch (DomainException e) {
@@ -77,7 +77,7 @@ public class LessonController {
             LocalDate date = LocalDate.parse(request.data());
             LocalTime start = LocalTime.parse(request.inizio());
             LocalTime finish = LocalTime.parse(request.fine());
-            List<Client> clients = clientService.clientsdoingLesson(request.codiciClienti());
+            List<Client> clients = clientService.clientsdoingLesson(request.codiciClienti(), getLoggedUser());
             lessonService.modifyLesson(l, date, start, finish, clients);
             return ResponseEntity.ok("Lezione modificata");
         } catch (DomainException e) {
