@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getLezioni, getClienti, addLezione, updateLezione, deleteLezione, getImpostazioni } from '../services/api';
 import SelettoreLocalita from '../components/SelettoreLocalita';
+import SelettoreClienti from '../components/SelettoreClienti';
 import { IconaMeteo, DettaglioMeteo } from '../components/Meteo';
 import AppShell from '../components/AppShell';
 
@@ -318,15 +319,6 @@ export default function LezioniPage({ onLogout }) {
         setShowForm(true);
     };
 
-    const toggleCliente = (code) => {
-        setFormData(prev => ({
-            ...prev,
-            codici: prev.codici.includes(code)
-                ? prev.codici.filter(c => c !== code)
-                : [...prev.codici, code]
-        }));
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrore('');
@@ -546,15 +538,11 @@ export default function LezioniPage({ onLogout }) {
                             </div>
 
                             <label style={s.formLabel}>Clienti</label>
-                            <div style={s.chipGrid}>
-                                {clienti.map(c => (
-                                    <div key={c.code}
-                                        style={{ ...s.clientChip, ...(formData.codici.includes(c.code) ? s.clientChipOn : {}) }}
-                                        onClick={() => toggleCliente(c.code)}>
-                                        {c.name} {c.surname}
-                                    </div>
-                                ))}
-                            </div>
+                            <SelettoreClienti
+                                clienti={clienti}
+                                selezionati={formData.codici}
+                                onChange={codici => setFormData(prev => ({ ...prev, codici }))}
+                            />
 
                             {!impostazioni.fixedLocation && (
                                 <CampoLocalita
@@ -632,9 +620,6 @@ const s = {
     input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', outline: 'none', color: 'var(--text)', backgroundColor: 'var(--surface)' },
     select: { flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', backgroundColor: 'var(--surface)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box', minWidth: 0 },
     row: { display: 'flex', gap: '12px' },
-    chipGrid: { display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' },
-    clientChip: { padding: '6px 14px', borderRadius: '20px', backgroundColor: 'var(--surface-2)', cursor: 'pointer', fontSize: '13px', userSelect: 'none', boxSizing: 'border-box' },
-    clientChipOn: { backgroundColor: 'var(--primary)', color: 'white' },
     errore: { color: 'var(--danger)', fontSize: '13px' },
     submitBtn: { flex: 1, padding: '11px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
     cancelBtn: { flex: 1, padding: '11px', backgroundColor: 'var(--surface-2)', color: 'var(--text)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
