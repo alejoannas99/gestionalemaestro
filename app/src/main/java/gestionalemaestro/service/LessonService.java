@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Discipline;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.model.Location;
 import gestionalemaestro.store.LessonRepository;
@@ -28,7 +29,7 @@ public class LessonService {
               this.clientRepository = clientRepository;
        }
 
-       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients, User instructor, Location location) throws IllegalArgumentException {
+       public void newLesson(LocalTime start, LocalDate date, LocalTime finish, List<Client> clients, User instructor, Location location, Discipline discipline) throws IllegalArgumentException {
        boolean hasOverlap = lessonRepository.findByInstructor(instructor).stream()
                                             .filter(l -> l.getDate().equals(date))
                                             .anyMatch(l -> l.getClients().stream()
@@ -44,6 +45,9 @@ public class LessonService {
               else if(finish.isBefore(start) || finish.equals(start)){
                      throw new DomainException("La fine della lezione deve essere dopo l'inizio");
               }
+              else if(discipline == null){
+                     throw new DomainException("Scegli la disciplina della lezione (sci o snowboard)");
+              }
               else if(lessonRepository.findByInstructor(instructor).stream()
                                             .filter(l -> l.getDate().equals(date))
                                             .anyMatch(l -> !(finish.isBefore(l.getStart()) || start.isAfter(l.getFinish())))) {
@@ -52,6 +56,7 @@ public class LessonService {
               Lesson l = new Lesson(date, start, finish, clients);
               l.setInstructor(instructor);
               l.setLocation(location);
+              l.setDiscipline(discipline);
               lessonRepository.save(l);
        }
 
@@ -62,15 +67,19 @@ public class LessonService {
               }
        }
 
-       public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients, Location newLocation) throws IllegalArgumentException {
+       public void modifyLesson(Lesson l, LocalDate newDate, LocalTime newstart, LocalTime newfinish, List<Client> newclients, Location newLocation, Discipline newDiscipline) throws IllegalArgumentException {
        if (newclients.isEmpty()) {
               throw new DomainException("At least one client is required");
+       }
+       if (newDiscipline == null) {
+              throw new DomainException("Scegli la disciplina della lezione (sci o snowboard)");
        }
        l.setDate(newDate);
        l.setStart(newstart);
        l.setFinish(newfinish);
        l.setClients(newclients);
        l.setLocation(newLocation);
+       l.setDiscipline(newDiscipline);
        lessonRepository.save(l);
        }
 

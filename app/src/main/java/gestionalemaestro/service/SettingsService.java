@@ -1,7 +1,10 @@
 package gestionalemaestro.service;
 
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
 
+import gestionalemaestro.model.Discipline;
 import gestionalemaestro.model.Location;
 import gestionalemaestro.model.User;
 import gestionalemaestro.model.UserSettings;
@@ -22,14 +25,19 @@ public class SettingsService {
     }
 
     // Nome vuoto o coordinate mancanti = località non impostata
-    public UserSettings update(User user, String locationName, Double latitude, Double longitude, boolean fixedLocation) {
+    public UserSettings update(User user, String locationName, Double latitude, Double longitude,
+                                boolean fixedLocation, Set<Discipline> disciplines) {
         UserSettings settings = get(user);
         Location location = buildLocation(locationName, latitude, longitude);
         if (fixedLocation && location == null) {
             throw new DomainException("Per avere la località fissa scegli prima una località");
         }
+        if (user.getRole() == User.Role.INSTRUCTOR && (disciplines == null || disciplines.isEmpty())) {
+            throw new DomainException("Scegli almeno una disciplina (sci o snowboard)");
+        }
         settings.setDefaultLocation(location);
         settings.setFixedLocation(fixedLocation);
+        settings.setDisciplines(disciplines != null ? disciplines : Set.of());
         return settingsRepository.save(settings);
     }
 

@@ -3,10 +3,13 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 // Funzione helper per fare richieste autenticate
 const authFetch = (url, options = {}) => {
     const token = localStorage.getItem('token');
+    // Per un upload (FormData, es. la foto) niente Content-Type fisso: lo imposta da solo il browser,
+    // con il "boundary" che separa i pezzi del file. Impostarlo a mano romperebbe l'upload.
+    const isFormData = options.body instanceof FormData;
     return fetch(url, {
         ...options,
         headers: {
-            'Content-Type': 'application/json',
+            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...options.headers,
         },
@@ -60,16 +63,16 @@ const campiLocalita = (localita) => ({
     longitude: localita?.longitude ?? null,
 });
 
-export const addLezione = (data, inizio, fine, codiciClienti, localita) =>
+export const addLezione = (data, inizio, fine, codiciClienti, localita, discipline) =>
     authFetch(`${BASE_URL}/lezioni`, {
         method: 'POST',
-        body: JSON.stringify({ data, inizio, fine, codiciClienti, ...campiLocalita(localita) }),
+        body: JSON.stringify({ data, inizio, fine, codiciClienti, discipline, ...campiLocalita(localita) }),
     });
 
-export const updateLezione = (id, data, inizio, fine, codiciClienti, localita) =>
+export const updateLezione = (id, data, inizio, fine, codiciClienti, localita, discipline) =>
     authFetch(`${BASE_URL}/lezioni/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ data, inizio, fine, codiciClienti, ...campiLocalita(localita) }),
+        body: JSON.stringify({ data, inizio, fine, codiciClienti, discipline, ...campiLocalita(localita) }),
     });
 
 export const deleteLezione = (id) =>
@@ -116,6 +119,24 @@ export const salvaImpostazioni = (impostazioni) =>
         method: 'PUT',
         body: JSON.stringify(impostazioni),
     });
+
+// FOTO PROFILO
+// blob è già l'immagine ritagliata e ridimensionata dal browser (vedi components/RitagliaFoto.jsx)
+export const caricaFoto = (blob) => {
+    const form = new FormData();
+    form.append('file', blob, 'foto.jpg');
+    return authFetch(`${BASE_URL}/foto`, { method: 'PUT', body: form });
+};
+
+export const rimuoviFoto = () =>
+    authFetch(`${BASE_URL}/foto`, { method: 'DELETE' });
+
+// Non un URL diretto: la richiesta va autenticata, quindi si scarica come blob (vedi hooks/useFoto.js)
+export const getFotoMia = () =>
+    authFetch(`${BASE_URL}/foto/me`);
+
+export const getFotoDi = (userId) =>
+    authFetch(`${BASE_URL}/foto/${userId}`);
 
 // STATS
 export const getStatsClienti = () =>

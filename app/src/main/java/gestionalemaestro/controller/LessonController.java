@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import gestionalemaestro.dto.LessonDTO;
 import gestionalemaestro.model.Client;
+import gestionalemaestro.model.Discipline;
 import gestionalemaestro.model.User;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.model.Location;
@@ -54,7 +55,8 @@ public class LessonController {
             List<Client> clients = clientService.clientsdoingLesson(request.codiciClienti(), getLoggedUser());
             Location requested = settingsService.buildLocation(request.locationName(), request.latitude(), request.longitude());
             Location location = settingsService.resolveLocation(getLoggedUser(), requested);
-            lessonService.newLesson(start, date, finish, clients, getLoggedUser(), location);
+            Discipline discipline = parseDiscipline(request.discipline());
+            lessonService.newLesson(start, date, finish, clients, getLoggedUser(), location, discipline);
             return ResponseEntity.status(201).body("Lezione creata");
         } catch (DomainException e) {
             return ResponseEntity.status(400).body(e.getMessage());
@@ -89,14 +91,27 @@ public class LessonController {
                 requested = l.getLocation(); // la richiesta non la indica: si tiene quella che la lezione ha già
             }
             Location location = settingsService.resolveLocation(getLoggedUser(), requested);
-            lessonService.modifyLesson(l, date, start, finish, clients, location);
+            Discipline discipline = parseDiscipline(request.discipline());
+            if (discipline == null) {
+                discipline = l.getDiscipline(); // la richiesta non la indica: si tiene quella che la lezione ha già
+            }
+            lessonService.modifyLesson(l, date, start, finish, clients, location, discipline);
             return ResponseEntity.ok("Lezione modificata");
         } catch (DomainException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 
+    // "SCI" o "SNOWBOARD" -> l'enum. Manca o non riconosciuta -> null (gestito dal chiamante)
+    private Discipline parseDiscipline(String value) {
+        try {
+            return value != null ? Discipline.valueOf(value) : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     // La località è facoltativa: se manca vale quella predefinita dell'istruttore
     record LezioneRequest(String data, String inizio, String fine, List<Integer> codiciClienti,
-                          String locationName, Double latitude, Double longitude) {}
+                          String locationName, Double latitude, Double longitude, String discipline) {}
 }

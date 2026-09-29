@@ -1,5 +1,6 @@
 package gestionalemaestro.dto;
 
+import gestionalemaestro.model.Discipline;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.model.Location;
 import java.time.LocalDate;
@@ -11,11 +12,13 @@ public record MyLessonDTO(
     LocalDate date,
     LocalTime start,
     LocalTime finish,
+    Integer instructorId,
     String instructorName,
     String instructorSurname,
     String locationName,
     Double latitude,
-    Double longitude
+    Double longitude,
+    Discipline discipline
 ) {
     public static MyLessonDTO from(Lesson l) {
         Location loc = l.getLocation();
@@ -24,11 +27,13 @@ public record MyLessonDTO(
             l.getDate(),
             l.getStart(),
             l.getFinish(),
+            l.getInstructor().getId(),
             l.getInstructor().getName(),
             l.getInstructor().getSurname(),
             loc != null ? loc.getName() : null,
             loc != null ? loc.getLatitude() : null,
-            loc != null ? loc.getLongitude() : null
+            loc != null ? loc.getLongitude() : null,
+            l.getDiscipline()
         );
     }
 }

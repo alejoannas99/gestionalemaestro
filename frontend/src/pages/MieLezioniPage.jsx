@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getMieLezioni, getMioRiepilogo, getIstruttori, getMieRichieste, inviaRichiesta } from '../services/api';
 import { IconaMeteo, MeteoOggi, DettaglioMeteo } from '../components/Meteo';
+import Avatar from '../components/Avatar';
 import AppShell from '../components/AppShell';
 
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
@@ -46,6 +47,12 @@ function localitaDi(lezione) {
     return lezione.latitude != null
         ? { name: lezione.locationName, latitude: lezione.latitude, longitude: lezione.longitude }
         : null;
+}
+// '' per le lezioni vecchie, create prima che esistesse questo campo
+function iconaDisciplina(discipline) {
+    if (discipline === 'SCI') return '⛷️';
+    if (discipline === 'SNOWBOARD') return '🏂';
+    return '';
 }
 
 export default function MieLezioniPage({ onLogout }) {
@@ -161,8 +168,11 @@ function Prossima({ lezione, onMeteo }) {
         <div style={s.hero}>
             <div style={s.heroEtichetta}>Prossima lezione · {quando(lezione.date)}</div>
             <div style={s.heroData}>{fmtDataLunga(lezione.date)}</div>
-            <div style={s.heroOra}>{fmtOra(lezione.start)} – {fmtOra(lezione.finish)}</div>
-            <div style={s.heroRiga}>con {lezione.instructorName} {lezione.instructorSurname}</div>
+            <div style={s.heroOra}>{iconaDisciplina(lezione.discipline)} {fmtOra(lezione.start)} – {fmtOra(lezione.finish)}</div>
+            <div style={{ ...s.heroRiga, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Avatar userId={lezione.instructorId} nome={lezione.instructorName} cognome={lezione.instructorSurname} size={22} />
+                con {lezione.instructorName} {lezione.instructorSurname}
+            </div>
             {localita && <div style={s.heroRiga}>📍 {localita.name}</div>}
             {localita && (
                 <div style={{ marginTop: '14px' }}>
@@ -184,8 +194,11 @@ function Riga({ lezione, passata, onMeteo }) {
                 <div style={s.giornoMese}>{MESI_BREVI[d.getMonth()]}</div>
             </div>
             <div style={s.rigaCorpo}>
-                <div style={s.rigaTitolo}>{GIORNI[d.getDay()]} · {fmtOra(lezione.start)}–{fmtOra(lezione.finish)}</div>
-                <div style={s.rigaDettaglio}>con {lezione.instructorName} {lezione.instructorSurname}</div>
+                <div style={s.rigaTitolo}>{iconaDisciplina(lezione.discipline)} {GIORNI[d.getDay()]} · {fmtOra(lezione.start)}–{fmtOra(lezione.finish)}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                    <Avatar userId={lezione.instructorId} nome={lezione.instructorName} cognome={lezione.instructorSurname} size={18} />
+                    <span style={s.rigaDettaglio}>con {lezione.instructorName} {lezione.instructorSurname}</span>
+                </div>
                 {localita && <div style={s.rigaDettaglio}>📍 {localita.name}</div>}
             </div>
             {onMeteo && localita && (

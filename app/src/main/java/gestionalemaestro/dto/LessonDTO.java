@@ -1,5 +1,6 @@
 package gestionalemaestro.dto;
 
+import gestionalemaestro.model.Discipline;
 import gestionalemaestro.model.Lesson;
 import gestionalemaestro.model.Location;
 import java.time.LocalDate;
@@ -14,7 +15,8 @@ public record LessonDTO(
     List<ClientSummaryDTO> clients,
     String locationName,
     Double latitude,
-    Double longitude
+    Double longitude,
+    Discipline discipline
 ) {
     public static LessonDTO from(Lesson l) {
         Location loc = l.getLocation();
@@ -26,7 +28,8 @@ public record LessonDTO(
             l.getClients().stream().map(ClientSummaryDTO::from).toList(),
             loc != null ? loc.getName() : null,
             loc != null ? loc.getLatitude() : null,
-            loc != null ? loc.getLongitude() : null
+            loc != null ? loc.getLongitude() : null,
+            l.getDiscipline()
         );
     }
 }

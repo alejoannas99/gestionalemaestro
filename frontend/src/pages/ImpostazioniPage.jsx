@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getImpostazioni, salvaImpostazioni } from '../services/api';
+import { getImpostazioni, salvaImpostazioni, caricaFoto, rimuoviFoto } from '../services/api';
 import SelettoreLocalita from '../components/SelettoreLocalita';
+import Avatar from '../components/Avatar';
+import RitagliaFoto from '../components/RitagliaFoto';
 import AppShell from '../components/AppShell';
 import { temaSalvato, impostaTema } from '../theme';
 
@@ -10,16 +12,61 @@ const OPZIONI_TEMA = [
     { valore: 'scuro', etichetta: '🌙 Scuro' },
 ];
 
+const OPZIONI_DISCIPLINA = [
+    { valore: 'SCI', etichetta: '⛷️ Sci' },
+    { valore: 'SNOWBOARD', etichetta: '🏂 Snowboard' },
+];
+
 export default function ImpostazioniPage({ onLogout, isInstructor }) {
     const [localita, setLocalita] = useState(null); // { name, latitude, longitude } oppure null
     const [fissa, setFissa] = useState(false);
+    const [discipline, setDiscipline] = useState([]); // es. ['SCI'] oppure ['SCI', 'SNOWBOARD']
     const [loading, setLoading] = useState(true);
     const [messaggio, setMessaggio] = useState({ tipo: '', testo: '' });
     const [tema, setTema] = useState(temaSalvato);
+    const [caricandoFoto, setCaricandoFoto] = useState(false);
+    const [erroreFoto, setErroreFoto] = useState('');
+    // Cambia ad ogni foto caricata o rimossa: forza l'Avatar a riscaricarla invece di mostrare quella vecchia
+    const [versioneFoto, setVersioneFoto] = useState(0);
+    const [fileScelto, setFileScelto] = useState(null); // il file appena scelto, in attesa di essere ritagliato
 
     const scegliTema = (valore) => {
         impostaTema(valore); // salva sul dispositivo e applica subito
         setTema(valore);
+    };
+
+    // Scegliere il file apre solo la finestra di ritaglio: l'upload vero parte da confermaRitaglio
+    const scegliFile = (e) => {
+        const file = e.target.files[0];
+        e.target.value = ''; // permette di scegliere di nuovo lo stesso file in seguito
+        if (file) setFileScelto(file);
+    };
+
+    const confermaRitaglio = async (blob) => {
+        setFileScelto(null);
+        setErroreFoto('');
+        setCaricandoFoto(true);
+        try {
+            const res = await caricaFoto(blob);
+            if (res.ok) setVersioneFoto(v => v + 1);
+            else setErroreFoto(await res.text());
+        } catch {
+            setErroreFoto('Errore di connessione');
+        }
+        setCaricandoFoto(false);
+    };
+
+    const togliFoto = async () => {
+        setErroreFoto('');
+        const res = await rimuoviFoto();
+        if (res.ok) setVersioneFoto(v => v + 1);
+        else setErroreFoto('Errore di connessione');
+    };
+
+    const toggleDisciplina = (valore) => {
+        setDiscipline(prev => prev.includes(valore)
+            ? prev.filter(d => d !== valore)
+            : [...prev, valore]);
     };
 
     useEffect(() => {
@@ -28,6 +75,7 @@ export default function ImpostazioniPage({ onLogout, isInstructor }) {
             .then(d => {
                 if (d.locationName) setLocalita({ name: d.locationName, latitude: d.latitude, longitude: d.longitude });
                 setFissa(d.fixedLocation);
+                setDiscipline(d.disciplines ?? []);
                 setLoading(false);
             })
             .catch(() => { setMessaggio({ tipo: 'errore', testo: 'Impossibile caricare le impostazioni' }); setLoading(false); });
@@ -41,6 +89,7 @@ export default function ImpostazioniPage({ onLogout, isInstructor }) {
                 latitude: localita?.latitude ?? null,
                 longitude: localita?.longitude ?? null,
                 fixedLocation: fissa,
+                disciplines: discipline,
             });
             if (res.ok) setMessaggio({ tipo: 'ok', testo: 'Impostazioni salvate' });
             else setMessaggio({ tipo: 'errore', testo: await res.text() });
@@ -52,6 +101,29 @@ export default function ImpostazioniPage({ onLogout, isInstructor }) {
     const contenuto = (
         <>
                 <h1 style={s.titolo}>Impostazioni</h1>
+
+                <div style={s.card}>
+                    <div style={s.cardTitolo}>Foto profilo</div>
+                    <p style={s.aiuto}>
+                        {isInstructor
+                            ? 'La vedono tutti i clienti.'
+                            : 'La vede solo l’istruttore a cui sei collegato.'}
+                    </p>
+                    <div style={s.fotoRiga}>
+                        <Avatar userId="me" size={72} refreshKey={versioneFoto} />
+                        <div style={s.fotoAzioni}>
+                            <label style={s.fotoBottone}>
+                                {caricandoFoto ? 'Caricamento…' : 'Cambia foto'}
+                                <input type="file" accept="image/*" style={s.fotoInput}
+                                    onChange={scegliFile} disabled={caricandoFoto} />
+                            </label>
+                            <button type="button" style={s.fotoRimuovi} onClick={togliFoto} disabled={caricandoFoto}>
+                                Rimuovi
+                            </button>
+                        </div>
+                    </div>
+                    {erroreFoto && <p style={s.errore}>{erroreFoto}</p>}
+                </div>
 
                 <div style={s.card}>
                     <div style={s.cardTitolo}>Aspetto</div>
@@ -68,6 +140,22 @@ export default function ImpostazioniPage({ onLogout, isInstructor }) {
                 </div>
 
                 {loading && <p style={s.testo}>Caricamento...</p>}
+
+                {!loading && isInstructor && (
+                    <div style={s.card}>
+                        <div style={s.cardTitolo}>Cosa insegni</div>
+                        <p style={s.aiuto}>Visibile ai clienti. Puoi selezionare anche entrambe.</p>
+                        <div style={s.opzioni}>
+                            {OPZIONI_DISCIPLINA.map(o => (
+                                <button key={o.valore} type="button"
+                                    style={{ ...s.opzione, ...(discipline.includes(o.valore) ? s.opzioneOn : {}) }}
+                                    onClick={() => toggleDisciplina(o.valore)}>
+                                    {o.etichetta}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {!loading && isInstructor && (
                     <div style={s.card}>
@@ -107,7 +195,14 @@ export default function ImpostazioniPage({ onLogout, isInstructor }) {
         </>
     );
 
-    return <AppShell ruolo={isInstructor ? 'INSTRUCTOR' : 'USER'} onLogout={onLogout}>{contenuto}</AppShell>;
+    return (
+        <>
+            <AppShell ruolo={isInstructor ? 'INSTRUCTOR' : 'USER'} onLogout={onLogout}>{contenuto}</AppShell>
+            {fileScelto && (
+                <RitagliaFoto file={fileScelto} onConferma={confermaRitaglio} onAnnulla={() => setFileScelto(null)} />
+            )}
+        </>
+    );
 }
 
 const s = {
@@ -125,4 +220,10 @@ const s = {
     opzione: { flex: 1, minWidth: '110px', padding: '10px 12px', backgroundColor: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '10px', fontSize: '14px', cursor: 'pointer' },
     opzioneOn: { backgroundColor: 'var(--brand)', color: 'white', borderColor: 'var(--brand)', fontWeight: '600' },
     lista: { margin: 0, paddingLeft: '20px', fontSize: '14px', color: 'var(--muted)', lineHeight: 1.8 },
+    fotoRiga: { display: 'flex', alignItems: 'center', gap: '16px' },
+    fotoAzioni: { display: 'flex', flexDirection: 'column', gap: '8px' },
+    // <input type="file"> di suo è brutto da vedere: si nasconde e il suo posto lo prende il <label>, cliccabile allo stesso modo
+    fotoInput: { position: 'absolute', width: '1px', height: '1px', opacity: 0, overflow: 'hidden' },
+    fotoBottone: { padding: '9px 16px', backgroundColor: 'var(--primary)', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textAlign: 'center', position: 'relative' },
+    fotoRimuovi: { padding: '9px 16px', backgroundColor: 'transparent', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' },
 };

@@ -1,9 +1,12 @@
 package gestionalemaestro.controller;
 
+import java.util.Set;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import gestionalemaestro.model.Discipline;
 import gestionalemaestro.model.Location;
 import gestionalemaestro.model.User;
 import gestionalemaestro.model.UserSettings;
@@ -35,23 +38,27 @@ public class SettingsController {
     public ResponseEntity<?> update(@RequestBody SettingsRequest request) {
         try {
             UserSettings saved = settingsService.update(getLoggedUser(),
-                request.locationName(), request.latitude(), request.longitude(), request.fixedLocation());
+                request.locationName(), request.latitude(), request.longitude(), request.fixedLocation(),
+                request.disciplines());
             return ResponseEntity.ok(SettingsResponse.from(saved));
         } catch (DomainException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 
-    record SettingsRequest(String locationName, Double latitude, Double longitude, boolean fixedLocation) {}
+    record SettingsRequest(String locationName, Double latitude, Double longitude, boolean fixedLocation,
+                            Set<Discipline> disciplines) {}
 
-    record SettingsResponse(String locationName, Double latitude, Double longitude, boolean fixedLocation) {
+    record SettingsResponse(String locationName, Double latitude, Double longitude, boolean fixedLocation,
+                             Set<Discipline> disciplines) {
         static SettingsResponse from(UserSettings s) {
             Location l = s.getDefaultLocation();
             return new SettingsResponse(
                 l != null ? l.getName() : null,
                 l != null ? l.getLatitude() : null,
                 l != null ? l.getLongitude() : null,
-                s.isFixedLocation());
+                s.isFixedLocation(),
+                s.getDisciplines());
         }
     }
 }

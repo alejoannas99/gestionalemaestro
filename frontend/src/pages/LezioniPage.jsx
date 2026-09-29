@@ -69,6 +69,12 @@ function oraFromY(y) {
     const slotIndex = Math.floor(y / SLOT_H);
     return SLOT_HOURS[Math.min(slotIndex, SLOT_HOURS.length - 2)];
 }
+// '' per le lezioni vecchie, create prima che esistesse questo campo
+function iconaDisciplina(discipline) {
+    if (discipline === 'SCI') return '⛷️';
+    if (discipline === 'SNOWBOARD') return '🏂';
+    return '';
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // VISTA AGENDA (mobile) — mostra le lezioni di un giorno alla volta
@@ -121,7 +127,7 @@ function VistaAgenda({ giorno, lezioni, clienti, onApriForm, onDelete, localita,
                             <div style={ag.cardBody}>
                                 <div style={ag.cardTop}>
                                     <span style={ag.orario}>
-                                        {l.start.substring(0,5)} – {l.finish.substring(0,5)}
+                                        {iconaDisciplina(l.discipline)} {l.start.substring(0,5)} – {l.finish.substring(0,5)}
                                     </span>
                                     <span style={ag.durata}>
                                         {toMin(l.finish.substring(0,5)) - toMin(l.start.substring(0,5))} min
@@ -218,10 +224,11 @@ export default function LezioniPage({ onLogout }) {
 
     const [showForm, setShowForm] = useState(false);
     const [lezioneSelezionata, setLezioneSelezionata] = useState(null);
-    const [formData, setFormData] = useState({ data: '', inizio: '', fine: '', codici: [], localita: null });
+    const [formData, setFormData] = useState({ data: '', inizio: '', fine: '', codici: [], localita: null, discipline: null });
     const [errore, setErrore] = useState('');
-    // fixedLocation: se vero il campo località non si mostra; predefinita: la località delle impostazioni
-    const [impostazioni, setImpostazioni] = useState({ fixedLocation: false, predefinita: null });
+    // fixedLocation: se vero il campo località non si mostra; predefinita: la località delle impostazioni;
+    // discipline: quelle che l'istruttore insegna (dalle Impostazioni), per proporle nel form della lezione
+    const [impostazioni, setImpostazioni] = useState({ fixedLocation: false, predefinita: null, discipline: [] });
     const [dettaglioMeteo, setDettaglioMeteo] = useState(null); // { localita, data } oppure null
 
     // Extra: se fallisce, il form funziona lo stesso senza il campo località predefinita
@@ -231,9 +238,14 @@ export default function LezioniPage({ onLogout }) {
             .then(d => setImpostazioni({
                 fixedLocation: d.fixedLocation,
                 predefinita: d.locationName ? { name: d.locationName, latitude: d.latitude, longitude: d.longitude } : null,
+                discipline: d.disciplines ?? [],
             }))
             .catch(() => {});
     }, []);
+
+    // Se l'istruttore insegna una sola disciplina, è quella predefinita per ogni nuova lezione;
+    // se le insegna entrambe (o le impostazioni non sono ancora state compilate) si sceglie a mano
+    const disciplinaPredefinita = () => (impostazioni.discipline.length === 1 ? impostazioni.discipline[0] : null);
 
     useEffect(() => {
         Promise.all([
@@ -281,7 +293,7 @@ export default function LezioniPage({ onLogout }) {
         const y = e.clientY - rect.top;
         const ora = oraFromY(y);
         setLezioneSelezionata(null);
-        setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [], localita: null });
+        setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [], localita: null, discipline: disciplinaPredefinita() });
         setErrore('');
         setShowForm(true);
     };
@@ -295,11 +307,12 @@ export default function LezioniPage({ onLogout }) {
                 inizio: lezione.start.substring(0, 5),
                 fine: lezione.finish.substring(0, 5),
                 codici: lezione.clients.map(c => c.code),
-                localita: localitaDi(lezione)
+                localita: localitaDi(lezione),
+                discipline: lezione.discipline ?? disciplinaPredefinita()
             });
         } else {
             setLezioneSelezionata(null);
-            setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [], localita: null });
+            setFormData({ data: toISO(giorno), inizio: ora, fine: slotEnd(ora), codici: [], localita: null, discipline: disciplinaPredefinita() });
         }
         setErrore('');
         setShowForm(true);
@@ -313,7 +326,8 @@ export default function LezioniPage({ onLogout }) {
             inizio: lezione.start.substring(0, 5),
             fine: lezione.finish.substring(0, 5),
             codici: lezione.clients.map(c => c.code),
-            localita: localitaDi(lezione)
+            localita: localitaDi(lezione),
+            discipline: lezione.discipline ?? disciplinaPredefinita()
         });
         setErrore('');
         setShowForm(true);
@@ -323,10 +337,11 @@ export default function LezioniPage({ onLogout }) {
         e.preventDefault();
         setErrore('');
         if (formData.codici.length === 0) { setErrore('Seleziona almeno un cliente'); return; }
+        if (!formData.discipline) { setErrore('Scegli se è una lezione di sci o snowboard'); return; }
         try {
             const res = lezioneSelezionata
-                ? await updateLezione(lezioneSelezionata.id, formData.data, formData.inizio, formData.fine, formData.codici, formData.localita)
-                : await addLezione(formData.data, formData.inizio, formData.fine, formData.codici, formData.localita);
+                ? await updateLezione(lezioneSelezionata.id, formData.data, formData.inizio, formData.fine, formData.codici, formData.localita, formData.discipline)
+                : await addLezione(formData.data, formData.inizio, formData.fine, formData.codici, formData.localita, formData.discipline);
             if (res.ok) { setShowForm(false); ricarica(); }
             else setErrore(await res.text());
         } catch { setErrore('Errore di connessione'); }
@@ -479,7 +494,7 @@ export default function LezioniPage({ onLogout }) {
                                                 <div key={l.id}
                                                     style={{ ...s.lezBlock, top, height }}
                                                     onClick={e => apriModifica(e, l)}>
-                                                    <span style={s.blockOra}>{l.start.substring(0,5)}–{l.finish.substring(0,5)}</span>
+                                                    <span style={s.blockOra}>{iconaDisciplina(l.discipline)} {l.start.substring(0,5)}–{l.finish.substring(0,5)}</span>
                                                     <span style={s.blockClienti}>{l.clients.map(c => c.name).join(', ')}</span>
                                                     <button style={s.blockDel} onClick={e => handleDelete(e, l.id)}>×</button>
                                                 </div>
@@ -543,6 +558,18 @@ export default function LezioniPage({ onLogout }) {
                                 selezionati={formData.codici}
                                 onChange={codici => setFormData(prev => ({ ...prev, codici }))}
                             />
+
+                            <label style={s.formLabel}>Disciplina</label>
+                            <div style={s.row}>
+                                {/* solo le discipline dell'istruttore; se non ne ha ancora scelta nessuna, si mostrano entrambe */}
+                                {(impostazioni.discipline.length > 0 ? impostazioni.discipline : ['SCI', 'SNOWBOARD']).map(d => (
+                                    <button key={d} type="button"
+                                        style={{ ...s.disciplinaBtn, ...(formData.discipline === d ? s.disciplinaBtnOn : {}) }}
+                                        onClick={() => setFormData(prev => ({ ...prev, discipline: d }))}>
+                                        {d === 'SCI' ? '⛷️ Sci' : '🏂 Snowboard'}
+                                    </button>
+                                ))}
+                            </div>
 
                             {!impostazioni.fixedLocation && (
                                 <CampoLocalita
@@ -620,6 +647,8 @@ const s = {
     input: { padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', outline: 'none', color: 'var(--text)', backgroundColor: 'var(--surface)' },
     select: { flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', backgroundColor: 'var(--surface)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box', minWidth: 0 },
     row: { display: 'flex', gap: '12px' },
+    disciplinaBtn: { flex: 1, padding: '10px', backgroundColor: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
+    disciplinaBtnOn: { backgroundColor: 'var(--brand)', color: 'white', borderColor: 'var(--brand)', fontWeight: '600' },
     errore: { color: 'var(--danger)', fontSize: '13px' },
     submitBtn: { flex: 1, padding: '11px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
     cancelBtn: { flex: 1, padding: '11px', backgroundColor: 'var(--surface-2)', color: 'var(--text)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },

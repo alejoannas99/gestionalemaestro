@@ -35,6 +35,10 @@ public class Lesson {
     @Embedded
     private Location location;
 
+    // Sci o snowboard. null = non indicata, per le lezioni create prima di questa funzione
+    @Enumerated(EnumType.STRING)
+    private Discipline discipline;
+
     public Lesson(LocalDate date, LocalTime start, LocalTime finish, List<Client> clients) {
         this.date = date;
         this.start = start;
@@ -52,9 +56,11 @@ public class Lesson {
     public LocalDate getDate() { return date; }
     public User getInstructor() { return instructor; }
     public Location getLocation() { return location; }
+    public Discipline getDiscipline() { return discipline; }
 
     // Setter
     public void setLocation(Location location) { this.location = location; }
+    public void setDiscipline(Discipline discipline) { this.discipline = discipline; }
     public void setInstructor(User instructor) { this.instructor = instructor; }
     public void setDate(LocalDate date) { this.date = date; }
     public void setStart(LocalTime start) { this.start = start; }

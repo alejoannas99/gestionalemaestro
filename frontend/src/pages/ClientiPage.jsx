@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getClienti, addCliente, updateCliente, deleteCliente } from '../services/api';
 import AppShell from '../components/AppShell';
+import Avatar from '../components/Avatar';
 
 // ── Hook responsività ────────────────────────────────────────────────────────
 function useIsMobile() {
@@ -11,12 +12,6 @@ function useIsMobile() {
         return () => window.removeEventListener('resize', handler);
     }, []);
     return isMobile;
-}
-
-// ── Helper colore avatar ─────────────────────────────────────────────────────
-const AVATAR_COLORS = ['#4361ee', '#e63946', '#2a9d8f', '#e76f51', '#8338ec', '#3a86ff'];
-function avatarColor(name) {
-    return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -129,9 +124,7 @@ export default function ClientiPage({ onLogout }) {
                         {clientiFiltrati.map(cliente => (
                             <div key={cliente.code} style={s.card}>
                                 <div style={s.cardLeft}>
-                                    <div style={{ ...s.avatar, backgroundColor: avatarColor(cliente.name) }}>
-                                        {cliente.name[0]}{cliente.surname[0]}
-                                    </div>
+                                    <Avatar userId={cliente.accountId} nome={cliente.name} cognome={cliente.surname} size={44} />
                                     <div>
                                         <p style={s.cardNome}>{cliente.name} {cliente.surname}</p>
                                         <p style={s.cardDettaglio}>
@@ -239,7 +232,6 @@ const s = {
     lista: { display: 'flex', flexDirection: 'column', gap: '10px' },
     card: { backgroundColor: 'var(--surface)', padding: '14px 16px', borderRadius: '12px', boxShadow: 'var(--shadow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     cardLeft: { display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 },
-    avatar: { width: '44px', height: '44px', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', flexShrink: 0 },
     cardNome: { fontWeight: '600', color: 'var(--text)', marginBottom: '3px', fontSize: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     cardDettaglio: { fontSize: '13px', color: 'var(--muted)' },
     cardRight: { display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 },
