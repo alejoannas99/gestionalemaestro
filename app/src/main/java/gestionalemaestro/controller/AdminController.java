@@ -106,4 +106,37 @@ public class AdminController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+
+    @GetMapping("/istruttori")
+    public ResponseEntity<?> istruttori(@RequestHeader(value = "X-Admin-Pin", required = false) String pin) {
+        ResponseEntity<String> denied = checkAdmin(pin);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(adminService.instructors());
+    }
+
+    @PostMapping("/istruttori/{id}/disattiva")
+    public ResponseEntity<String> disattiva(@PathVariable Integer id,
+                                            @RequestHeader(value = "X-Admin-Pin", required = false) String pin) {
+        ResponseEntity<String> denied = checkAdmin(pin);
+        if (denied != null) return denied;
+        try {
+            adminService.disable(id);
+            return ResponseEntity.ok("Istruttore disattivato");
+        } catch (DomainException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/istruttori/{id}/riattiva")
+    public ResponseEntity<String> riattiva(@PathVariable Integer id,
+                                           @RequestHeader(value = "X-Admin-Pin", required = false) String pin) {
+        ResponseEntity<String> denied = checkAdmin(pin);
+        if (denied != null) return denied;
+        try {
+            adminService.enable(id);
+            return ResponseEntity.ok("Istruttore riattivato");
+        } catch (DomainException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
 }

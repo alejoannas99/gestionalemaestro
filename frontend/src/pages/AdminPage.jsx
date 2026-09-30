@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import {
     getStatoApp, getIstruttoriInAttesa, approvaIstruttore, rifiutaIstruttore, getErroriRecenti,
+    getElencoIstruttori, disattivaIstruttore, riattivaIstruttore,
 } from '../services/api';
 import AppShell from '../components/AppShell';
 
@@ -40,6 +41,10 @@ export default function AdminPage({ onLogout }) {
     const [errori, setErrori] = useState([]);
     const [loadingErrori, setLoadingErrori] = useState(true);
     const [erroreErrori, setErroreErrori] = useState('');
+
+    const [elencoIstruttori, setElencoIstruttori] = useState([]);
+    const [loadingElenco, setLoadingElenco] = useState(true);
+    const [erroreElenco, setErroreElenco] = useState('');
 
     // Se il PIN salvato non è (più) valido, si torna alla schermata di richiesta.
     const pinNonValido = () => {
@@ -88,14 +93,29 @@ export default function AdminPage({ onLogout }) {
             });
     };
 
+    const caricaElenco = (pinUsato) => {
+        getElencoIstruttori(pinUsato)
+            .then(r => {
+                if (r.status === 401) { pinNonValido(); return Promise.reject(null); }
+                return r.ok ? r.json() : Promise.reject(r);
+            })
+            .then(data => { setElencoIstruttori(Array.isArray(data) ? data : []); setLoadingElenco(false); })
+            .catch((r) => {
+                if (r === null) return;
+                setErroreElenco('Impossibile caricare gli istruttori');
+                setLoadingElenco(false);
+            });
+    };
+
     useEffect(() => {
         if (!pin) return;
         caricaStato(pin);
         caricaIstruttori(pin);
         caricaErrori(pin);
-        // caricaStato/caricaIstruttori/caricaErrori si ridefiniscono ad ogni render (non sono
-        // useCallback): metterle tra le dipendenze farebbe ripartire il caricamento di continuo.
-        // Deve ripartire solo quando cambia il pin, che è già in dipendenza.
+        caricaElenco(pin);
+        // caricaStato/caricaIstruttori/caricaErrori/caricaElenco si ridefiniscono ad ogni render
+        // (non sono useCallback): metterle tra le dipendenze farebbe ripartire il caricamento di
+        // continuo. Deve ripartire solo quando cambia il pin, che è già in dipendenza.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pin]);
 
@@ -132,6 +152,21 @@ export default function AdminPage({ onLogout }) {
             }
         } catch {
             setErroreIstruttori('Errore di connessione');
+        }
+    };
+
+    const decidiAttivo = async (azione, id) => {
+        setErroreElenco('');
+        try {
+            const res = await azione(id, pin);
+            if (res.status === 401) { pinNonValido(); return; }
+            if (res.ok) {
+                caricaElenco(pin);
+            } else {
+                setErroreElenco(await res.text());
+            }
+        } catch {
+            setErroreElenco('Errore di connessione');
         }
     };
 
@@ -206,6 +241,32 @@ export default function AdminPage({ onLogout }) {
                                 <div style={s.bottoni}>
                                     <button style={s.approva} onClick={() => decidi(approvaIstruttore, i.id)}>Approva</button>
                                     <button style={s.rifiuta} onClick={() => decidi(rifiutaIstruttore, i.id)}>Rifiuta</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section style={s.sezione}>
+                    <h2 style={s.titoloSezione}>Istruttori</h2>
+                    <p style={s.sotto}>Disattivare toglie l'accesso, non cancella nulla: clienti, lezioni e storico restano.</p>
+
+                    {loadingElenco && <p style={s.testo}>Caricamento...</p>}
+                    {erroreElenco && <p style={s.errore}>{erroreElenco}</p>}
+                    {!loadingElenco && elencoIstruttori.length === 0 && <p style={s.vuoto}>Nessun istruttore approvato.</p>}
+
+                    <div style={s.griglia}>
+                        {elencoIstruttori.map(i => (
+                            <div key={i.id} style={s.scheda}>
+                                <div style={s.nome}>{i.name} {i.surname}</div>
+                                <div style={s.dettaglio}>{i.email}</div>
+                                <div style={s.dettaglio}>{i.enabled ? 'Attivo' : 'Disattivato'}</div>
+                                <div style={s.bottoni}>
+                                    {i.enabled ? (
+                                        <button style={s.rifiuta} onClick={() => decidiAttivo(disattivaIstruttore, i.id)}>Disattiva</button>
+                                    ) : (
+                                        <button style={s.approva} onClick={() => decidiAttivo(riattivaIstruttore, i.id)}>Riattiva</button>
+                                    )}
                                 </div>
                             </div>
                         ))}

@@ -130,6 +130,15 @@ export const rifiutaIstruttore = (id, pin) =>
 export const getErroriRecenti = (pin) =>
     authFetch(`${BASE_URL}/admin/errori-recenti`, { headers: { 'X-Admin-Pin': pin } });
 
+export const getElencoIstruttori = (pin) =>
+    authFetch(`${BASE_URL}/admin/istruttori`, { headers: { 'X-Admin-Pin': pin } });
+
+export const disattivaIstruttore = (id, pin) =>
+    authFetch(`${BASE_URL}/admin/istruttori/${id}/disattiva`, { method: 'POST', headers: { 'X-Admin-Pin': pin } });
+
+export const riattivaIstruttore = (id, pin) =>
+    authFetch(`${BASE_URL}/admin/istruttori/${id}/riattiva`, { method: 'POST', headers: { 'X-Admin-Pin': pin } });
+
 // IMPOSTAZIONI
 export const getImpostazioni = () =>
     authFetch(`${BASE_URL}/impostazioni`);

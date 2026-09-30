@@ -55,6 +55,9 @@ public class AuthController {
             if (user.getRole() == User.Role.INSTRUCTOR && !user.isApproved()) {
                 return ResponseEntity.status(403).body("Account in attesa di approvazione");
             }
+            if (user.getRole() == User.Role.INSTRUCTOR && !user.isEnabled()) {
+                return ResponseEntity.status(403).body("Account disattivato dall'amministratore");
+            }
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
             return ResponseEntity.ok(token);
         } catch (DomainException e) {

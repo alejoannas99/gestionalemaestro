@@ -34,6 +34,8 @@ public class AdminService {
 
     public record PendingInstructor(Integer id, String name, String surname, String email) {}
 
+    public record Instructor(Integer id, String name, String surname, String email, boolean enabled) {}
+
     public record Stato(long istruttoriApprovati, long istruttoriInAttesa,
                         long accountClienti, long schedeClienti, long lezioni) {}
 
@@ -68,5 +70,32 @@ public class AdminService {
             .filter(u -> u.getRole() == User.Role.INSTRUCTOR && !u.isApproved())
             .orElseThrow(() -> new DomainException("Richiesta non trovata"));
         return user;
+    }
+
+    // Istruttori già approvati almeno una volta: attivi e disattivati insieme, distinti dal
+    // campo enabled. Non tocca chi è ancora in attesa della prima approvazione (altra lista).
+    public List<Instructor> instructors() {
+        return userRepository.findByRoleAndApprovedTrue(User.Role.INSTRUCTOR).stream()
+            .map(u -> new Instructor(u.getId(), u.getName(), u.getSurname(), u.getEmail(), u.isEnabled()))
+            .toList();
+    }
+
+    // Toglie l'accesso senza toccare nessun dato suo (clienti, lezioni, storico restano).
+    public void disable(Integer id) {
+        User user = approvedInstructor(id);
+        user.setEnabled(false);
+        userRepository.save(user);
+    }
+
+    public void enable(Integer id) {
+        User user = approvedInstructor(id);
+        user.setEnabled(true);
+        userRepository.save(user);
+    }
+
+    private User approvedInstructor(Integer id) {
+        return userRepository.findById(id)
+            .filter(u -> u.getRole() == User.Role.INSTRUCTOR && u.isApproved())
+            .orElseThrow(() -> new DomainException("Istruttore non trovato"));
     }
 }

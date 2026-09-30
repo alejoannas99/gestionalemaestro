@@ -30,6 +30,12 @@ public class User {
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean approved = true;
 
+    // Diverso da approved: un istruttore già approvato che l'amministratore disattiva in un
+    // secondo momento (senza cancellare nulla). Un account non approvato ha enabled=true ma
+    // resta comunque bloccato da approved=false finché non viene approvato la prima volta.
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean enabled = true;
+
     public User() {}
 
     public User(String email, String password, String name, String surname, Role role) {
@@ -47,8 +53,10 @@ public class User {
     public String getSurname()   { return surname; }
     public Role getRole()        { return role; }
     public boolean isApproved()  { return approved; }
+    public boolean isEnabled()   { return enabled; }
     public void setPassword(String password) { this.password = password; }
     public void setApproved(boolean approved) { this.approved = approved; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
     @Override
     public boolean equals(Object o) {
