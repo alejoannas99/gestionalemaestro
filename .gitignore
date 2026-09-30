@@ -9,3 +9,4 @@ app/build/
 
 # Environment
 app/src/main/resources/application.properties
+frontend/.env
