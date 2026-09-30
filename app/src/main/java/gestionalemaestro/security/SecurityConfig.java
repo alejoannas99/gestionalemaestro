@@ -45,13 +45,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
+        // Pattern (non un elenco fisso) così qualunque IP di rete privata va bene: non serve più
+        // aggiornare questa lista ogni volta che si cambia wifi. Restano esclusi indirizzi pubblici.
+        config.setAllowedOriginPatterns(List.of(
                                     "http://localhost:5173",
-                                    "http://192.168.100.100:5173",
-                                    "http://192.168.100.105:5173",
-                                    "http://192.168.100.102:5173",
-                                    "http://192.168.1.19:5173"
-
+                                    "http://192.168.*.*:5173",
+                                    "http://10.*.*.*:5173"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

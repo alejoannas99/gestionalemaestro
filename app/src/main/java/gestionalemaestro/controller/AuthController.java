@@ -45,15 +45,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        // Stesso codice e stesso messaggio sia se l'email non esiste sia se la password è
+        // sbagliata: altrimenti chi prova il login può scoprire quali email sono registrate.
         try {
             User user = userService.findByEmail(request.email());
             if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-                return ResponseEntity.status(401).body("Password errata");
+                return ResponseEntity.status(401).body("Email o password non validi");
             }
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
             return ResponseEntity.ok(token);
         } catch (DomainException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(401).body("Email o password non validi");
         }
     }
 
