@@ -3,3 +3,7 @@ spring.datasource.username=tuo_username
 spring.datasource.password=tua_password
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.open-in-view=false
+
+# Genera la tua chiave, non riusare un valore d'esempio. In PowerShell:
+#   [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+jwt.secret=
