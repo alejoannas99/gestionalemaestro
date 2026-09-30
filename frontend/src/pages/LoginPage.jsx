@@ -19,6 +19,10 @@ function LoginPage({ onLogin }) {
             if (res.ok) {
                 const token = await res.text();
                 onLogin(token);
+            } else if (res.status === 403) {
+                // Password corretta ma account istruttore non ancora approvato: qui va bene
+                // mostrare il messaggio vero, perché per vederlo bisogna già sapere la password.
+                setErrore(await res.text());
             } else {
                 setErrore('Email o password errati');
             }

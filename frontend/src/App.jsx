@@ -10,6 +10,7 @@ import ClientiPage from './pages/ClientiPage';
 import LezioniPage from './pages/LezioniPage';
 import MieLezioniPage from './pages/MieLezioniPage';
 import RichiestePage from './pages/RichiestePage';
+import AdminPage from './pages/AdminPage';
 import ImpostazioniPage from './pages/ImpostazioniPage';
 import MessaggiPage from './pages/MessaggiPage';
 
@@ -73,6 +74,12 @@ function App() {
 
                 <Route path="/richieste" element={
                     isInstructor ? <RichiestePage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
+                } />
+
+                {/* AppShell mostra la voce "Admin" nel menu solo all'account giusto; chiunque
+                    altro la apra a mano viene comunque rifiutato dal backend con 403. */}
+                <Route path="/admin" element={
+                    isInstructor ? <AdminPage onLogout={handleLogout} /> : <Navigate to={isLoggedIn ? home : "/login"} />
                 } />
 
                 {/* Impostazioni: per tutti i ruoli, ma la sezione località compare solo agli istruttori */}

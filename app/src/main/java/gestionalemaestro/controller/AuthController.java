@@ -52,6 +52,9 @@ public class AuthController {
             if (!passwordEncoder.matches(request.password(), user.getPassword())) {
                 return ResponseEntity.status(401).body("Email o password non validi");
             }
+            if (user.getRole() == User.Role.INSTRUCTOR && !user.isApproved()) {
+                return ResponseEntity.status(403).body("Account in attesa di approvazione");
+            }
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
             return ResponseEntity.ok(token);
         } catch (DomainException e) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useIsMobile from '../hooks/useIsMobile';
-import { getRichieste } from '../services/api';
+import { getRichieste, getSonoAdmin } from '../services/api';
 import { RICHIESTE_CAMBIATE } from '../events';
 
 // Le voci di navigazione cambiano con il ruolo
@@ -27,8 +27,21 @@ export default function AppShell({ ruolo = 'USER', onLogout, piena = false, chil
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const isMobile = useIsMobile();
-    const schede = SCHEDE[ruolo];
+    const [sonoAdmin, setSonoAdmin] = useState(false);
+    const schede = sonoAdmin
+        ? [...SCHEDE[ruolo], { path: '/admin', icona: '🛠️', etichetta: 'Admin' }]
+        : SCHEDE[ruolo];
     const [richieste, setRichieste] = useState(0);
+
+    // Solo l'account amministratore vede la voce "Admin". Il controllo vero è comunque
+    // lato backend: qui serve solo a decidere se mostrare il pulsante nel menu.
+    useEffect(() => {
+        if (ruolo !== 'INSTRUCTOR') return;
+        getSonoAdmin()
+            .then(r => (r.ok ? r.json() : false))
+            .then(setSonoAdmin)
+            .catch(() => {});
+    }, [ruolo]);
 
     // Solo per l'istruttore: quante richieste di collegamento aspettano una risposta. È un extra, se fallisce non si mostra.
     // Si ricalcola cambiando pagina e quando una pagina avvisa che una richiesta è stata decisa.

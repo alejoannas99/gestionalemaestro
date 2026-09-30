@@ -110,6 +110,23 @@ export const approvaRichiesta = (id) =>
 export const rifiutaRichiesta = (id) =>
     authFetch(`${BASE_URL}/richieste/${id}/rifiuta`, { method: 'POST' });
 
+// ADMIN — solo l'account con l'email in app.admin-email ottiene una risposta diversa da 403.
+// In più (tranne sono-admin) serve il PIN della sezione admin, mandato nell'header X-Admin-Pin.
+export const getSonoAdmin = () =>
+    authFetch(`${BASE_URL}/admin/sono-admin`);
+
+export const getStatoApp = (pin) =>
+    authFetch(`${BASE_URL}/admin/stato`, { headers: { 'X-Admin-Pin': pin } });
+
+export const getIstruttoriInAttesa = (pin) =>
+    authFetch(`${BASE_URL}/admin/istruttori-in-attesa`, { headers: { 'X-Admin-Pin': pin } });
+
+export const approvaIstruttore = (id, pin) =>
+    authFetch(`${BASE_URL}/admin/istruttori/${id}/approva`, { method: 'POST', headers: { 'X-Admin-Pin': pin } });
+
+export const rifiutaIstruttore = (id, pin) =>
+    authFetch(`${BASE_URL}/admin/istruttori/${id}/rifiuta`, { method: 'POST', headers: { 'X-Admin-Pin': pin } });
+
 // IMPOSTAZIONI
 export const getImpostazioni = () =>
     authFetch(`${BASE_URL}/impostazioni`);

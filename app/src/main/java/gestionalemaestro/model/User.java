@@ -25,6 +25,11 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    // Un istruttore appena registrato parte non approvato e non può fare login finché
+    // l'amministratore non lo approva a mano. Un cliente (USER) è sempre approvato.
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean approved = true;
+
     public User() {}
 
     public User(String email, String password, String name, String surname, Role role) {
@@ -41,7 +46,9 @@ public class User {
     public String getName()      { return name; }
     public String getSurname()   { return surname; }
     public Role getRole()        { return role; }
+    public boolean isApproved()  { return approved; }
     public void setPassword(String password) { this.password = password; }
+    public void setApproved(boolean approved) { this.approved = approved; }
 
     @Override
     public boolean equals(Object o) {

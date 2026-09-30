@@ -7,3 +7,9 @@ spring.jpa.open-in-view=false
 # Genera la tua chiave, non riusare un valore d'esempio. In PowerShell:
 #   [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
 jwt.secret=
+
+# La tua email: solo questo account potrà approvare/rifiutare nuovi istruttori.
+app.admin-email=
+
+# Un codice a piacere (es. 6 cifre) per entrare nella sezione admin, oltre alla password di login.
+app.admin-pin=
