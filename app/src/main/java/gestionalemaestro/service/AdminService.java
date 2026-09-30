@@ -18,12 +18,18 @@ public class AdminService {
     private final JpaUserRepository userRepository;
     private final ClientRepository clientRepository;
     private final LessonRepository lessonRepository;
+    private final ErrorLogService errorLogService;
 
     public AdminService(JpaUserRepository userRepository, ClientRepository clientRepository,
-                        LessonRepository lessonRepository) {
+                        LessonRepository lessonRepository, ErrorLogService errorLogService) {
         this.userRepository = userRepository;
         this.clientRepository = clientRepository;
         this.lessonRepository = lessonRepository;
+        this.errorLogService = errorLogService;
+    }
+
+    public List<ErrorLogService.ErrorEntry> erroriRecenti() {
+        return errorLogService.recenti();
     }
 
     public record PendingInstructor(Integer id, String name, String surname, String email) {}

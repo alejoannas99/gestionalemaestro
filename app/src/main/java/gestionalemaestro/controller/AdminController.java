@@ -74,6 +74,13 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/errori-recenti")
+    public ResponseEntity<?> erroriRecenti(@RequestHeader(value = "X-Admin-Pin", required = false) String pin) {
+        ResponseEntity<String> denied = checkAdmin(pin);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(adminService.erroriRecenti());
+    }
+
     @PostMapping("/istruttori/{id}/approva")
     public ResponseEntity<String> approva(@PathVariable Integer id,
                                           @RequestHeader(value = "X-Admin-Pin", required = false) String pin) {

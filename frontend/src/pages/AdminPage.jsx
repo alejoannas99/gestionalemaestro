@@ -8,12 +8,20 @@
 // pagine, e gestisco io la larghezza massima qui dentro.
 import { useState, useEffect } from 'react';
 import {
-    getStatoApp, getIstruttoriInAttesa, approvaIstruttore, rifiutaIstruttore,
+    getStatoApp, getIstruttoriInAttesa, approvaIstruttore, rifiutaIstruttore, getErroriRecenti,
 } from '../services/api';
 import AppShell from '../components/AppShell';
 
 function pinSalvato() {
     try { return sessionStorage.getItem('adminPin') || ''; } catch { return ''; }
+}
+
+// "2026-09-30T18:23:11.123" -> "30/09 18:23"
+function fmtQuando(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const due = (n) => String(n).padStart(2, '0');
+    return `${due(d.getDate())}/${due(d.getMonth() + 1)} ${due(d.getHours())}:${due(d.getMinutes())}`;
 }
 
 export default function AdminPage({ onLogout }) {
@@ -28,6 +36,10 @@ export default function AdminPage({ onLogout }) {
     const [istruttori, setIstruttori] = useState([]);
     const [loadingIstruttori, setLoadingIstruttori] = useState(true);
     const [erroreIstruttori, setErroreIstruttori] = useState('');
+
+    const [errori, setErrori] = useState([]);
+    const [loadingErrori, setLoadingErrori] = useState(true);
+    const [erroreErrori, setErroreErrori] = useState('');
 
     // Se il PIN salvato non è (più) valido, si torna alla schermata di richiesta.
     const pinNonValido = () => {
@@ -62,13 +74,28 @@ export default function AdminPage({ onLogout }) {
             });
     };
 
+    const caricaErrori = (pinUsato) => {
+        getErroriRecenti(pinUsato)
+            .then(r => {
+                if (r.status === 401) { pinNonValido(); return Promise.reject(null); }
+                return r.ok ? r.json() : Promise.reject(r);
+            })
+            .then(data => { setErrori(Array.isArray(data) ? data : []); setLoadingErrori(false); })
+            .catch((r) => {
+                if (r === null) return;
+                setErroreErrori('Impossibile caricare gli errori recenti');
+                setLoadingErrori(false);
+            });
+    };
+
     useEffect(() => {
         if (!pin) return;
         caricaStato(pin);
         caricaIstruttori(pin);
-        // caricaStato/caricaIstruttori si ridefiniscono ad ogni render (non sono useCallback):
-        // metterle tra le dipendenze farebbe ripartire il caricamento di continuo. Deve ripartire
-        // solo quando cambia il pin, che è già in dipendenza.
+        caricaErrori(pin);
+        // caricaStato/caricaIstruttori/caricaErrori si ridefiniscono ad ogni render (non sono
+        // useCallback): metterle tra le dipendenze farebbe ripartire il caricamento di continuo.
+        // Deve ripartire solo quando cambia il pin, che è già in dipendenza.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pin]);
 
@@ -184,6 +211,31 @@ export default function AdminPage({ onLogout }) {
                         ))}
                     </div>
                 </section>
+
+                <section style={s.sezione}>
+                    <div style={s.intestazioneErrori}>
+                        <h2 style={s.titoloSezione}>Errori recenti</h2>
+                        <button style={s.aggiorna} onClick={() => caricaErrori(pin)}>Aggiorna</button>
+                    </div>
+                    <p style={s.sotto}>Eccezioni impreviste del backend, dall'ultimo riavvio (le più recenti prima).</p>
+
+                    {loadingErrori && <p style={s.testo}>Caricamento...</p>}
+                    {erroreErrori && <p style={s.errore}>{erroreErrori}</p>}
+                    {!loadingErrori && errori.length === 0 && <p style={s.vuoto}>Nessun errore registrato.</p>}
+
+                    <div style={s.listaErrori}>
+                        {errori.map((e, i) => (
+                            <div key={i} style={s.rigaErrore}>
+                                <div style={s.rigaErroreIntestazione}>
+                                    <span style={s.tipoErrore}>{e.tipo}</span>
+                                    <span style={s.quandoErrore}>{fmtQuando(e.quando)}</span>
+                                </div>
+                                <div style={s.dettaglio}>{e.metodo} {e.percorso}</div>
+                                {e.messaggio && <div style={s.messaggioErrore}>{e.messaggio}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </section>
             </div>
         </AppShell>
     );
@@ -213,4 +265,12 @@ const s = {
     bottoni: { display: 'flex', gap: '10px', marginTop: '12px' },
     approva: { flex: 1, padding: '9px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
     rifiuta: { flex: 1, padding: '9px', backgroundColor: 'var(--danger-soft)', color: 'var(--danger)', border: '1px solid var(--danger-border)', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+    intestazioneErrori: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' },
+    aggiorna: { padding: '7px 14px', backgroundColor: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
+    listaErrori: { display: 'flex', flexDirection: 'column', gap: '8px' },
+    rigaErrore: { backgroundColor: 'var(--surface)', borderRadius: '10px', padding: '12px 14px', boxShadow: 'var(--shadow)', borderLeft: '3px solid var(--danger)' },
+    rigaErroreIntestazione: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' },
+    tipoErrore: { fontSize: '14px', fontWeight: '700', color: 'var(--danger)' },
+    quandoErrore: { fontSize: '12px', color: 'var(--muted)' },
+    messaggioErrore: { fontSize: '13px', color: 'var(--text)', marginTop: '4px' },
 };

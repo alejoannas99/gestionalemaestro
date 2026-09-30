@@ -127,6 +127,9 @@ export const approvaIstruttore = (id, pin) =>
 export const rifiutaIstruttore = (id, pin) =>
     authFetch(`${BASE_URL}/admin/istruttori/${id}/rifiuta`, { method: 'POST', headers: { 'X-Admin-Pin': pin } });
 
+export const getErroriRecenti = (pin) =>
+    authFetch(`${BASE_URL}/admin/errori-recenti`, { headers: { 'X-Admin-Pin': pin } });
+
 // IMPOSTAZIONI
 export const getImpostazioni = () =>
     authFetch(`${BASE_URL}/impostazioni`);
